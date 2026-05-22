@@ -43,18 +43,6 @@
         .key-tone { background-color: #f3e8ff; border-color: #d8b4fe; color: #6b21a8; }      /* 聲調：粉紫 */
         .key-control { background-color: #e2e8f0; border-color: #cbd5e1; color: #475569; }   /* 控制鍵：灰色 */
         
-        /* 動態高亮閃爍效果 */
-        @keyframes key-glow {
-            0%, 100% { transform: scale(1); box-shadow: 0 0 0 0px rgba(59, 130, 246, 0.7); }
-            50% { transform: scale(1.05); box-shadow: 0 0 15px 5px rgba(59, 130, 246, 0.7); border-color: #3b82f6; }
-        }
-        .key-target {
-            animation: key-glow 1.2s infinite;
-            background-color: #3b82f6 !important;
-            color: white !important;
-            font-weight: 900;
-        }
-
         /* Mascot 抖動與彈跳動畫 */
         @keyframes shake {
             0%, 100% { transform: translateX(0); }
@@ -178,7 +166,7 @@
                 <div class="absolute right-4 bottom-4 opacity-5 pointer-events-none text-9xl">📖</div>
 
                 <!-- 詩詞標題與作者 -->
-                <div class="text-center mb-6">
+                <div class="text-center mb-2">
                     <h2 id="current-title" class="text-3xl md:text-4xl font-extrabold text-blue-900 poem-font inline-flex gap-4">
                         <!-- 標題帶注音 -->
                     </h2>
@@ -188,20 +176,9 @@
                 </div>
 
                 <!-- 一次打一行：主挑戰畫面 -->
-                <div class="my-auto flex flex-col items-center justify-center py-4">
-                    <!-- 進度指示器 (呈現當前是第幾行) -->
-                    <div id="line-indicators" class="flex gap-2 mb-6">
-                        <!-- 動態點點 -->
-                    </div>
-
-                    <!-- 題目行顯示區 (極度放大，方便閱讀) -->
-                    <div id="target-sentence" class="flex flex-wrap justify-center gap-x-8 gap-y-12 text-4xl md:text-5xl font-black text-gray-700 leading-relaxed mb-8">
-                        <!-- 每個字帶大注音，由 JS 生成 -->
-                    </div>
-
-                    <!-- 鍵盤敲擊狀態與 mascot 區 -->
-                    <div class="flex items-center gap-6 w-full max-w-lg bg-yellow-50 border-4 border-yellow-200 rounded-2xl p-4">
-                        <!-- Mascot 動態精靈 -->
+                <div class="my-auto flex flex-col items-center justify-center py-6 relative">
+                    <!-- Mascot 動態精靈 (移至右上角避免阻擋輸入框對齊) -->
+                    <div class="absolute right-0 -top-4 md:right-4 md:-top-4">
                         <div id="mascot" class="w-16 h-16 flex-shrink-0 relative transition-transform duration-200">
                             <!-- CSS 繪製的可愛小精靈 -->
                             <div class="w-16 h-16 bg-blue-400 rounded-full border-4 border-blue-600 flex items-center justify-center shadow-md relative">
@@ -215,16 +192,29 @@
                                 <div class="absolute -top-3 left-6 text-xl">✨</div>
                             </div>
                         </div>
+                    </div>
+
+                    <!-- 進度指示器 (呈現當前是第幾行) -->
+                    <div id="line-indicators" class="flex gap-2 mb-6">
+                        <!-- 動態點點 -->
+                    </div>
+
+                    <!-- 完美對齊區塊：包含題目與輸入框 -->
+                    <div class="flex flex-col items-start w-full max-w-[90%] md:max-w-2xl mx-auto">
+                        <!-- 題目行顯示區 -->
+                        <div id="target-sentence" class="flex justify-start items-end w-full text-4xl md:text-5xl font-black text-gray-700 mb-2" style="gap: 0.5em; padding-left: calc(0.25em + 4px); min-height: 1.5em;">
+                            <!-- 每個字帶大注音，由 JS 生成，寬度固定為 1em -->
+                        </div>
                         
-                        <!-- 輸入指引 -->
-                        <div class="flex-grow">
-                            <div class="text-xs text-gray-400 font-bold">請在這裡輸入：</div>
-                            <!-- 輸入框 -->
-                            <div class="relative mt-1">
-                                <input type="text" id="typing-input" autocomplete="off" placeholder="點擊這裡開始打字..." class="w-full border-3 border-blue-300 px-4 py-2 rounded-xl text-xl font-bold focus:outline-none focus:border-blue-500 bg-white shadow-sm placeholder-gray-300">
-                                <div id="input-helper" class="text-xs text-blue-500 font-bold mt-1">
-                                    提示：請輸入整句唐詩，完成後按 Enter (確認鍵) 送出檢查！
-                                </div>
+                        <!-- 簡化後的輸入框 -->
+                        <div class="w-full relative">
+                            <!-- padding-left 與 letter-spacing 經過精確計算，以保證與上方 gap: 0.5em 完全對齊 -->
+                            <input type="text" id="typing-input" autocomplete="off" placeholder="點擊開始打字..." 
+                                class="w-full border-4 border-blue-300 bg-yellow-50 py-3 md:py-4 rounded-2xl text-4xl md:text-5xl text-left font-black text-blue-800 focus:outline-none focus:border-blue-500 shadow-sm placeholder-gray-400 placeholder:text-2xl placeholder:tracking-normal placeholder:font-bold transition-all"
+                                style="letter-spacing: 0.5em; padding-left: 0.25em; padding-right: 0.25em;">
+                            
+                            <div id="input-helper" class="text-xs text-blue-500 font-bold mt-3 ml-2">
+                                💡 提示：請輸入整句唐詩與標點符號，完成後按 Enter (確認鍵) 送出檢查！
                             </div>
                         </div>
                     </div>
@@ -423,500 +413,500 @@
                 title: "靜夜思", titleZhuyin: ["ㄐㄧㄥˋ", "ㄧㄝˋ", "ㄙ"],
                 author: "李白", authorZhuyin: ["ㄌㄧˇ", "ㄅㄞˊ"],
                 lines: [
-                    { text: "床前明月光", zhuyin: "ㄔㄨㄤˊ ㄑㄧㄢˊ ㄇㄧㄥˊ ㄩㄝˋ ㄍㄨㄤ" },
-                    { text: "疑是地上霜", zhuyin: "ㄧˊ ㄕˋ ㄉㄧˋ ㄕㄤˋ ㄕㄨㄤ" },
-                    { text: "舉頭望明月", zhuyin: "ㄐㄩˇ ㄊㄡˊ ㄨㄤˋ ㄇㄧㄥˊ ㄩㄝˋ" },
-                    { text: "低頭思故鄉", zhuyin: "ㄉㄧ ㄊㄡˊ ㄙ ㄍㄨˋ ㄒㄧㄤ" }
+                    { text: "床前明月光，", zhuyin: "ㄔㄨㄤˊ ㄑㄧㄢˊ ㄇㄧㄥˊ ㄩㄝˋ ㄍㄨㄤ " },
+                    { text: "疑是地上霜。", zhuyin: "ㄧˊ ㄕˋ ㄉㄧˋ ㄕㄤˋ ㄕㄨㄤ " },
+                    { text: "舉頭望明月，", zhuyin: "ㄐㄩˇ ㄊㄡˊ ㄨㄤˋ ㄇㄧㄥˊ ㄩㄝˋ " },
+                    { text: "低頭思故鄉。", zhuyin: "ㄉㄧ ㄊㄡˊ ㄙ ㄍㄨˋ ㄒㄧㄤ " }
                 ]
             },
             {
                 title: "登鸛雀樓", titleZhuyin: ["ㄉㄥ", "ㄍㄨㄢˋ", "ㄑㄩㄝˋ", "ㄌㄡˊ"],
                 author: "王之渙", authorZhuyin: ["ㄨㄤˊ", "ㄓ", "ㄏㄨㄢˋ"],
                 lines: [
-                    { text: "白日依山盡", zhuyin: "ㄅㄞˊ ㄖˋ ㄧ ㄕㄢ ㄐㄧㄣˋ" },
-                    { text: "黃河入海流", zhuyin: "ㄏㄨㄤˊ ㄏㄜˊ ㄖㄨˋ ㄏㄞˇ ㄌㄧㄡˊ" },
-                    { text: "欲窮千里目", zhuyin: "ㄩˋ ㄑㄩㄥˊ ㄑㄧㄢ ㄌㄧˇ ㄇㄨˋ" },
-                    { text: "更上一層樓", zhuyin: "ㄍㄥˋ ㄕㄤˋ ㄧˋ ㄘㄥˊ ㄌㄡˊ" }
+                    { text: "白日依山盡，", zhuyin: "ㄅㄞˊ ㄖˋ ㄧ ㄕㄢ ㄐㄧㄣˋ " },
+                    { text: "黃河入海流。", zhuyin: "ㄏㄨㄤˊ ㄏㄜˊ ㄖㄨˋ ㄏㄞˇ ㄌㄧㄡˊ " },
+                    { text: "欲窮千里目，", zhuyin: "ㄩˋ ㄑㄩㄥˊ ㄑㄧㄢ ㄌㄧˇ ㄇㄨˋ " },
+                    { text: "更上一層樓。", zhuyin: "ㄍㄥˋ ㄕㄤˋ ㄧˋ ㄘㄥˊ ㄌㄡˊ " }
                 ]
             },
             {
                 title: "春曉", titleZhuyin: ["ㄔㄨㄣ", "ㄒㄧㄠˇ"],
                 author: "孟浩然", authorZhuyin: ["ㄇㄥˋ", "ㄏㄠˋ", "ㄖㄢˊ"],
                 lines: [
-                    { text: "春眠不覺曉", zhuyin: "ㄔㄨㄣ ㄇㄧㄢˊ ㄅㄨˋ ㄐㄩㄝˊ ㄒㄧㄠˇ" },
-                    { text: "處處聞啼鳥", zhuyin: "ㄔㄨˋ ㄔㄨˋ ㄨㄣˊ ㄊㄧˊ ㄋㄧㄠˇ" },
-                    { text: "夜來風雨聲", zhuyin: "ㄧㄝˋ ㄌㄞˊ ㄈㄥ ㄩˇ ㄕㄥ" },
-                    { text: "花落知多少", zhuyin: "ㄏㄨㄚ ㄌㄨㄛˋ ㄓ ㄉㄨㄛ ㄕㄠˇ" }
+                    { text: "春眠不覺曉，", zhuyin: "ㄔㄨㄣ ㄇㄧㄢˊ ㄅㄨˋ ㄐㄩㄝˊ ㄒㄧㄠˇ " },
+                    { text: "處處聞啼鳥。", zhuyin: "ㄔㄨˋ ㄔㄨˋ ㄨㄣˊ ㄊㄧˊ ㄋㄧㄠˇ " },
+                    { text: "夜來風雨聲，", zhuyin: "ㄧㄝˋ ㄌㄞˊ ㄈㄥ ㄩˇ ㄕㄥ " },
+                    { text: "花落知多少？", zhuyin: "ㄏㄨㄚ ㄌㄨㄛˋ ㄓ ㄉㄨㄛ ㄕㄠˇ " }
                 ]
             },
             {
                 title: "相思", titleZhuyin: ["ㄒㄧㄤ", "ㄙ"],
                 author: "王維", authorZhuyin: ["ㄨㄤˊ", "ㄨㄟˊ"],
                 lines: [
-                    { text: "紅豆生南國", zhuyin: "ㄏㄨㄥˊ ㄉㄡˋ ㄕㄥ ㄋㄢˊ ㄍㄨㄛˊ" },
-                    { text: "春來發幾枝", zhuyin: "ㄔㄨㄣ ㄌㄞˊ ㄈㄚ ㄐㄧˇ ㄓ" },
-                    { text: "願君多採擷", zhuyin: "ㄩㄢˋ ㄐㄩㄣ ㄉㄨㄛ ㄘㄞˇ ㄒㄧㄝˊ" },
-                    { text: "此物最相思", zhuyin: "ㄘˇ ㄨˋ ㄗㄨㄟˋ ㄒㄧㄤ ㄙ" }
+                    { text: "紅豆生南國，", zhuyin: "ㄏㄨㄥˊ ㄉㄡˋ ㄕㄥ ㄋㄢˊ ㄍㄨㄛˊ " },
+                    { text: "春來發幾枝？", zhuyin: "ㄔㄨㄣ ㄌㄞˊ ㄈㄚ ㄐㄧˇ ㄓ " },
+                    { text: "願君多採擷，", zhuyin: "ㄩㄢˋ ㄐㄩㄣ ㄉㄨㄛ ㄘㄞˇ ㄒㄧㄝˊ " },
+                    { text: "此物最相思。", zhuyin: "ㄘˇ ㄨˋ ㄗㄨㄟˋ ㄒㄧㄤ ㄙ " }
                 ]
             },
             {
                 title: "江雪", titleZhuyin: ["ㄐㄧㄤ", "ㄒㄩㄝˇ"],
                 author: "柳宗元", authorZhuyin: ["ㄌㄧㄡˇ", "ㄗㄨㄥ", "ㄩㄢˊ"],
                 lines: [
-                    { text: "千山鳥飛絕", zhuyin: "ㄑㄧㄢ ㄕㄢ ㄋㄧㄠˇ ㄈㄟ ㄐㄩㄝˊ" },
-                    { text: "萬徑人蹤滅", zhuyin: "ㄨㄢˋ ㄐㄧㄥˋ ㄖㄣˊ ㄗㄨㄥ ㄇㄧㄝˋ" },
-                    { text: "孤舟蓑笠翁", zhuyin: "ㄍㄨ ㄓㄡ ㄙㄨㄛ ㄌㄧˋ ㄨㄥ" },
-                    { text: "獨釣寒江雪", zhuyin: "ㄉㄨˊ ㄉㄧㄠˋ ㄏㄢˊ ㄐㄧㄤ ㄒㄩㄝˇ" }
+                    { text: "千山鳥飛絕，", zhuyin: "ㄑㄧㄢ ㄕㄢ ㄋㄧㄠˇ ㄈㄟ ㄐㄩㄝˊ " },
+                    { text: "萬徑人蹤滅。", zhuyin: "ㄨㄢˋ ㄐㄧㄥˋ ㄖㄣˊ ㄗㄨㄥ ㄇㄧㄝˋ " },
+                    { text: "孤舟蓑笠翁，", zhuyin: "ㄍㄨ ㄓㄡ ㄙㄨㄛ ㄌㄧˋ ㄨㄥ " },
+                    { text: "獨釣寒江雪。", zhuyin: "ㄉㄨˊ ㄉㄧㄠˋ ㄏㄢˊ ㄐㄧㄤ ㄒㄩㄝˇ " }
                 ]
             },
             {
                 title: "尋隱者不遇", titleZhuyin: ["ㄒㄩㄣˊ", "ㄧㄣˇ", "ㄓㄜˇ", "ㄅㄨˊ", "ㄩˋ"],
                 author: "賈島", authorZhuyin: ["ㄐㄧㄚˇ", "ㄉㄠˇ"],
                 lines: [
-                    { text: "松下問童子", zhuyin: "ㄙㄨㄥ ㄒㄧㄚˋ ㄨㄣˋ ㄊㄨㄥˊ ㄗˇ" },
-                    { text: "言師採藥去", zhuyin: "ㄧㄢˊ ㄕ ㄘㄞˇ ㄧㄠˋ ㄑㄩˋ" },
-                    { text: "只在此山中", zhuyin: "ㄓˇ ㄗㄞˋ ㄘˇ ㄕㄢ ㄓㄨㄥ" },
-                    { text: "雲深不知處", zhuyin: "ㄩㄣˊ ㄕㄣ ㄅㄨˋ ㄓ ㄔㄨˋ" }
+                    { text: "松下問童子，", zhuyin: "ㄙㄨㄥ ㄒㄧㄚˋ ㄨㄣˋ ㄊㄨㄥˊ ㄗˇ " },
+                    { text: "言師採藥去。", zhuyin: "ㄧㄢˊ ㄕ ㄘㄞˇ ㄧㄠˋ ㄑㄩˋ " },
+                    { text: "只在此山中，", zhuyin: "ㄓˇ ㄗㄞˋ ㄘˇ ㄕㄢ ㄓㄨㄥ " },
+                    { text: "雲深不知處。", zhuyin: "ㄩㄣˊ ㄕㄣ ㄅㄨˋ ㄓ ㄔㄨˋ " }
                 ]
             },
             {
                 title: "憫農", titleZhuyin: ["ㄇㄧㄣˇ", "ㄋㄨㄥˊ"],
                 author: "李紳", authorZhuyin: ["ㄌㄧˇ", "ㄕㄣ"],
                 lines: [
-                    { text: "鋤禾日當午", zhuyin: "ㄔㄨˊ ㄏㄜˊ ㄖˋ ㄉㄤ ㄨˇ" },
-                    { text: "汗滴禾下土", zhuyin: "ㄏㄢˋ ㄉㄧˊ ㄏㄜˊ ㄒㄧㄚˋ ㄊㄨˇ" },
-                    { text: "誰知盤中飧", zhuyin: "ㄕㄟˊ ㄓ ㄆㄢˊ ㄓㄨㄥ ㄙㄨㄣ" },
-                    { text: "粒粒皆辛苦", zhuyin: "ㄌㄧˋ ㄌㄧˋ ㄐㄧㄝ ㄒㄧㄣ ㄎㄨˇ" }
+                    { text: "鋤禾日當午，", zhuyin: "ㄔㄨˊ ㄏㄜˊ ㄖˋ ㄉㄤ ㄨˇ " },
+                    { text: "汗滴禾下土。", zhuyin: "ㄏㄢˋ ㄉㄧˊ ㄏㄜˊ ㄒㄧㄚˋ ㄊㄨˇ " },
+                    { text: "誰知盤中飧，", zhuyin: "ㄕㄟˊ ㄓ ㄆㄢˊ ㄓㄨㄥ ㄙㄨㄣ " },
+                    { text: "粒粒皆辛苦。", zhuyin: "ㄌㄧˋ ㄌㄧˋ ㄐㄧㄝ ㄒㄧㄣ ㄎㄨˇ " }
                 ]
             },
             {
                 title: "登樂遊原", titleZhuyin: ["ㄉㄥ", "ㄌㄜˋ", "ㄧㄡˊ", "ㄩㄢˊ"],
                 author: "李商隱", authorZhuyin: ["ㄌㄧˇ", "ㄕㄤ", "ㄧㄣˇ"],
                 lines: [
-                    { text: "向晚意不適", zhuyin: "ㄒㄧㄤˋ ㄨㄢˇ ㄧˋ ㄅㄨˋ ㄕˋ" },
-                    { text: "驅車登古原", zhuyin: "ㄑㄩ ㄔㄜ ㄉㄥ ㄍㄨˇ ㄩㄢˊ" },
-                    { text: "夕陽無限好", zhuyin: "ㄒㄧˋ ㄧㄤˊ ㄨˊ ㄒㄧㄢˋ ㄏㄠˇ" },
-                    { text: "只是近黃昏", zhuyin: "ㄓˇ ㄕˋ ㄐㄧㄣˋ ㄏㄨㄤˊ ㄏㄨㄣ" }
+                    { text: "向晚意不適，", zhuyin: "ㄒㄧㄤˋ ㄨㄢˇ ㄧˋ ㄅㄨˋ ㄕˋ " },
+                    { text: "驅車登古原。", zhuyin: "ㄑㄩ ㄔㄜ ㄉㄥ ㄍㄨˇ ㄩㄢˊ " },
+                    { text: "夕陽無限好，", zhuyin: "ㄒㄧˋ ㄧㄤˊ ㄨˊ ㄒㄧㄢˋ ㄏㄠˇ " },
+                    { text: "只是近黃昏。", zhuyin: "ㄓˇ ㄕˋ ㄐㄧㄣˋ ㄏㄨㄤˊ ㄏㄨㄣ " }
                 ]
             },
             {
                 title: "鹿柴", titleZhuyin: ["ㄌㄨˋ", "ㄓㄞˋ"],
                 author: "王維", authorZhuyin: ["ㄨㄤˊ", "ㄨㄟˊ"],
                 lines: [
-                    { text: "空山不見人", zhuyin: "ㄎㄨㄥ ㄕㄢ ㄅㄨˊ ㄐㄧㄢˋ ㄖㄣˊ" },
-                    { text: "但聞人語響", zhuyin: "ㄉㄢˋ ㄨㄣˊ ㄖㄣˊ ㄩˇ ㄒㄧㄤˇ" },
-                    { text: "返景入深林", zhuyin: "ㄈㄢˇ ㄧㄥˇ ㄖㄨˋ ㄕㄣ ㄌㄧㄣˊ" },
-                    { text: "復照青苔上", zhuyin: "ㄈㄨˋ ㄓㄠˋ ㄑㄧㄥ ㄊㄞˊ ㄕㄤˋ" }
+                    { text: "空山不見人，", zhuyin: "ㄎㄨㄥ ㄕㄢ ㄅㄨˊ ㄐㄧㄢˋ ㄖㄣˊ " },
+                    { text: "但聞人語響。", zhuyin: "ㄉㄢˋ ㄨㄣˊ ㄖㄣˊ ㄩˇ ㄒㄧㄤˇ " },
+                    { text: "返景入深林，", zhuyin: "ㄈㄢˇ ㄧㄥˇ ㄖㄨˋ ㄕㄣ ㄌㄧㄣˊ " },
+                    { text: "復照青苔上。", zhuyin: "ㄈㄨˋ ㄓㄠˋ ㄑㄧㄥ ㄊㄞˊ ㄕㄤˋ " }
                 ]
             },
             {
                 title: "竹里館", titleZhuyin: ["ㄓㄨ", "ㄌㄧˇ", "ㄍㄨㄢˇ"],
                 author: "王維", authorZhuyin: ["ㄨㄤˊ", "ㄨㄟˊ"],
                 lines: [
-                    { text: "獨坐幽篁裏", zhuyin: "ㄉㄨˊ ㄗㄨㄛˋ ㄧㄡ ㄏㄨㄤˊ ㄌㄧˇ" },
-                    { text: "彈琴復長嘯", zhuyin: "ㄉㄢˊ ㄑㄧㄣˊ ㄈㄨˋ ㄔㄤˊ ㄒㄧㄠˋ" },
-                    { text: "深林人不知", zhuyin: "ㄕㄣ ㄌㄧㄣˊ ㄖㄣˊ ㄅㄨˋ ㄓ" },
-                    { text: "明月來相照", zhuyin: "ㄇㄧㄥˊ ㄩㄝˋ ㄌㄞˊ ㄒㄧㄤ ㄓㄠˋ" }
+                    { text: "獨坐幽篁裏，", zhuyin: "ㄉㄨˊ ㄗㄨㄛˋ ㄧㄡ ㄏㄨㄤˊ ㄌㄧˇ " },
+                    { text: "彈琴復長嘯。", zhuyin: "ㄉㄢˊ ㄑㄧㄣˊ ㄈㄨˋ ㄔㄤˊ ㄒㄧㄠˋ " },
+                    { text: "深林人不知，", zhuyin: "ㄕㄣ ㄌㄧㄣˊ ㄖㄣˊ ㄅㄨˋ ㄓ " },
+                    { text: "明月來相照。", zhuyin: "ㄇㄧㄥˊ ㄩㄝˋ ㄌㄞˊ ㄒㄧㄤ ㄓㄠˋ " }
                 ]
             },
             {
                 title: "獨坐敬亭山", titleZhuyin: ["ㄉㄨˊ", "ㄗㄨㄛˋ", "ㄐㄧㄥˋ", "ㄊㄧㄥˊ", "ㄕㄢ"],
                 author: "李白", authorZhuyin: ["ㄌㄧˇ", "ㄅㄞˊ"],
                 lines: [
-                    { text: "眾鳥高飛盡", zhuyin: "ㄓㄨㄥˋ ㄋㄧㄠˇ ㄍㄠ ㄈㄟ ㄐㄧㄣˋ" },
-                    { text: "孤雲獨去閒", zhuyin: "ㄍㄨ ㄩㄣˊ ㄉㄨˊ ㄑㄩˋ ㄒㄧㄢˊ" },
-                    { text: "相看兩不厭", zhuyin: "ㄒㄧㄤ ㄎㄢˋ ㄌㄧㄤˇ ㄅㄨˋ ㄧㄢˋ" },
-                    { text: "只有敬亭山", zhuyin: "ㄓˇ ㄧㄡˇ ㄐㄧㄥˋ ㄊㄧㄥˊ ㄕㄢ" }
+                    { text: "眾鳥高飛盡，", zhuyin: "ㄓㄨㄥˋ ㄋㄧㄠˇ ㄍㄠ ㄈㄟ ㄐㄧㄣˋ " },
+                    { text: "孤雲獨去閒。", zhuyin: "ㄍㄨ ㄩㄣˊ ㄉㄨˊ ㄑㄩˋ ㄒㄧㄢˊ " },
+                    { text: "相看兩不厭，", zhuyin: "ㄒㄧㄤ ㄎㄢˋ ㄌㄧㄤˇ ㄅㄨˋ ㄧㄢˋ " },
+                    { text: "只有敬亭山。", zhuyin: "ㄓˇ ㄧㄡˇ ㄐㄧㄥˋ ㄊㄧㄥˊ ㄕㄢ " }
                 ]
             },
             {
                 title: "鳥鳴澗", titleZhuyin: ["ㄋㄧㄠˇ", "ㄇㄧㄥˊ", "ㄐㄧㄢˋ"],
                 author: "王維", authorZhuyin: ["ㄨㄤˊ", "ㄨㄟˊ"],
                 lines: [
-                    { text: "人閒桂花落", zhuyin: "ㄖㄣˊ ㄒㄧㄢˊ ㄍㄨㄟˋ ㄏㄨㄚ ㄌㄨㄛˋ" },
-                    { text: "夜靜春山空", zhuyin: "ㄧㄝˋ ㄐㄧㄥˋ ㄔㄨㄣ ㄕㄢ ㄎㄨㄥ" },
-                    { text: "月出驚山鳥", zhuyin: "ㄩㄝˋ ㄔㄨ ㄐㄧㄥ ㄕㄢ ㄋㄧㄠˇ" },
-                    { text: "時鳴春澗中", zhuyin: "ㄕˊ ㄇㄧㄥˊ ㄔㄨㄣ ㄐㄧㄢˋ ㄓㄨㄥ" }
+                    { text: "人閒桂花落，", zhuyin: "ㄖㄣˊ ㄒㄧㄢˊ ㄍㄨㄟˋ ㄏㄨㄚ ㄌㄨㄛˋ " },
+                    { text: "夜靜春山空。", zhuyin: "ㄧㄝˋ ㄐㄧㄥˋ ㄔㄨㄣ ㄕㄢ ㄎㄨㄥ " },
+                    { text: "月出驚山鳥，", zhuyin: "ㄩㄝˋ ㄔㄨ ㄐㄧㄥ ㄕㄢ ㄋㄧㄠˇ " },
+                    { text: "時鳴春澗中。", zhuyin: "ㄕˊ ㄇㄧㄥˊ ㄔㄨㄣ ㄐㄧㄢˋ ㄓㄨㄥ " }
                 ]
             },
             {
                 title: "宿建德江", titleZhuyin: ["ㄙㄨˋ", "ㄐㄧㄢˋ", "ㄉㄜˊ", "ㄐㄧㄤ"],
                 author: "孟浩然", authorZhuyin: ["ㄇㄥˋ", "ㄏㄠˋ", "ㄖㄢˊ"],
                 lines: [
-                    { text: "移舟泊煙渚", zhuyin: "ㄧˊ ㄓㄡ ㄅㄛˊ ㄧㄢ ㄓㄨˇ" },
-                    { text: "日暮客愁新", zhuyin: "ㄖˋ ㄇㄨˋ ㄎㄜˋ ㄔㄡˊ ㄒㄧㄣ" },
-                    { text: "野曠天低樹", zhuyin: "ㄧㄝˇ ㄎㄨㄤˋ ㄊㄧㄢ ㄉㄧ ㄕㄨˋ" },
-                    { text: "江清月近人", zhuyin: "ㄐㄧㄤ ㄑㄧㄥ ㄩㄝˋ ㄐㄧㄣˋ ㄖㄣˊ" }
+                    { text: "移舟泊煙渚，", zhuyin: "ㄧˊ ㄓㄡ ㄅㄛˊ ㄧㄢ ㄓㄨˇ " },
+                    { text: "日暮客愁新。", zhuyin: "ㄖˋ ㄇㄨˋ ㄎㄜˋ ㄔㄡˊ ㄒㄧㄣ " },
+                    { text: "野曠天低樹，", zhuyin: "ㄧㄝˇ ㄎㄨㄤˋ ㄊㄧㄢ ㄉㄧ ㄕㄨˋ " },
+                    { text: "江清月近人。", zhuyin: "ㄐㄧㄤ ㄑㄧㄥ ㄩㄝˋ ㄐㄧㄣˋ ㄖㄣˊ " }
                 ]
             },
             {
                 title: "怨情", titleZhuyin: ["ㄩㄢˋ", "ㄑㄧㄥˊ"],
                 author: "李白", authorZhuyin: ["ㄌㄧˇ", "ㄅㄞˊ"],
                 lines: [
-                    { text: "美人卷珠簾", zhuyin: "ㄇㄟˇ ㄖㄣˊ ㄐㄩㄢˇ ㄓㄨ ㄌㄧㄢˊ" },
-                    { text: "深坐顰蛾眉", zhuyin: "ㄕㄣ ㄗㄨㄛˋ ㄆㄧㄣˊ ㄜˊ ㄇㄟˊ" },
-                    { text: "但見淚痕濕", zhuyin: "ㄉㄢˋ ㄐㄧㄢˋ ㄌㄟˋ ㄏㄣˊ ㄕ" },
-                    { text: "不知心恨誰", zhuyin: "ㄅㄨˋ ㄓ ㄒㄧㄣ ㄏㄣˋ ㄕㄟˊ" }
+                    { text: "美人卷珠簾，", zhuyin: "ㄇㄟˇ ㄖㄣˊ ㄐㄩㄢˇ ㄓㄨ ㄌㄧㄢˊ " },
+                    { text: "深坐顰蛾眉。", zhuyin: "ㄕㄣ ㄗㄨㄛˋ ㄆㄧㄣˊ ㄜˊ ㄇㄟˊ " },
+                    { text: "但見淚痕濕，", zhuyin: "ㄉㄢˋ ㄐㄧㄢˋ ㄌㄟˋ ㄏㄣˊ ㄕ " },
+                    { text: "不知心恨誰？", zhuyin: "ㄅㄨˋ ㄓ ㄒㄧㄣ ㄏㄣˋ ㄕㄟˊ " }
                 ]
             },
             {
                 title: "送靈澈上人", titleZhuyin: ["ㄙㄨㄥˋ", "ㄌㄧㄥˊ", "ㄔㄜˋ", "ㄕㄤˋ", "ㄖㄣˊ"],
                 author: "劉長卿", authorZhuyin: ["ㄌㄧㄡˊ", "ㄔㄤˊ", "ㄑㄧㄥ"],
                 lines: [
-                    { text: "蒼蒼竹林寺", zhuyin: "ㄘㄤ ㄘㄤ ㄓㄨˊ ㄌㄧㄣˊ ㄙˋ" },
-                    { text: "杳杳鐘聲晚", zhuyin: "ㄧㄠˇ ㄧㄠˇ ㄓㄨㄥ ㄕㄥ ㄨㄢˇ" },
-                    { text: "荷笠帶斜陽", zhuyin: "ㄏㄜˊ ㄌㄧˋ ㄉㄞˋ ㄒㄧㄝˊ ㄧㄤˊ" },
-                    { text: "青山獨歸遠", zhuyin: "ㄑㄧㄥ ㄕㄢ ㄉㄨˊ ㄍㄨㄟ ㄩㄢˇ" }
+                    { text: "蒼蒼竹林寺，", zhuyin: "ㄘㄤ ㄘㄤ ㄓㄨˊ ㄌㄧㄣˊ ㄙˋ " },
+                    { text: "杳杳鐘聲晚。", zhuyin: "ㄧㄠˇ ㄧㄠˇ ㄓㄨㄥ ㄕㄥ ㄨㄢˇ " },
+                    { text: "荷笠帶斜陽，", zhuyin: "ㄏㄜˊ ㄌㄧˋ ㄉㄞˋ ㄒㄧㄝˊ ㄧㄤˊ " },
+                    { text: "青山獨歸遠。", zhuyin: "ㄑㄧㄥ ㄕㄢ ㄉㄨˊ ㄍㄨㄟ ㄩㄢˇ " }
                 ]
             },
             {
                 title: "聽彈琴", titleZhuyin: ["ㄊㄧㄥ", "ㄊㄢˊ", "ㄑㄧㄣˊ"],
                 author: "劉長卿", authorZhuyin: ["ㄌㄧㄡˊ", "ㄔㄤˊ", "ㄑㄧㄥ"],
                 lines: [
-                    { text: "泠泠七弦上", zhuyin: "ㄌㄧㄥˊ ㄌㄧㄥˊ ㄑㄧ ㄒㄧㄢˊ ㄕㄤˋ" },
-                    { text: "靜聽松風寒", zhuyin: "ㄐㄧㄥˋ ㄊㄧㄥ ㄙㄨㄥ ㄈㄥ ㄏㄢˊ" },
-                    { text: "古調雖自愛", zhuyin: "ㄍㄨˇ ㄉㄧㄠˋ ㄙㄨㄟ ㄗˋ ㄞˋ" },
-                    { text: "今人多不彈", zhuyin: "ㄐㄧㄣ ㄖㄣˊ ㄉㄨㄛ ㄅㄨˋ ㄊㄢˊ" }
+                    { text: "泠泠七弦上，", zhuyin: "ㄌㄧㄥˊ ㄌㄧㄥˊ ㄑㄧ ㄒㄧㄢˊ ㄕㄤˋ " },
+                    { text: "靜聽松風寒。", zhuyin: "ㄐㄧㄥˋ ㄊㄧㄥ ㄙㄨㄥ ㄈㄥ ㄏㄢˊ " },
+                    { text: "古調雖自愛，", zhuyin: "ㄍㄨˇ ㄉㄧㄠˋ ㄙㄨㄟ ㄗˋ ㄞˋ " },
+                    { text: "今人多不彈。", zhuyin: "ㄐㄧㄣ ㄖㄣˊ ㄉㄨㄛ ㄅㄨˋ ㄊㄢˊ " }
                 ]
             },
             {
                 title: "雜詩", titleZhuyin: ["ㄗㄚˊ", "ㄕ"],
                 author: "王維", authorZhuyin: ["ㄨㄤˊ", "ㄨㄟˊ"],
                 lines: [
-                    { text: "君自故鄉來", zhuyin: "ㄐㄩㄣ ㄗˋ ㄍㄨˋ ㄒㄧㄤ ㄌㄞˊ" },
-                    { text: "應知故鄉事", zhuyin: "ㄧㄥ ㄓ ㄍㄨˋ ㄒㄧㄤ ㄕˋ" },
-                    { text: "來日綺窗前", zhuyin: "ㄌㄞˊ ㄖˋ ㄑㄧˇ ㄔㄨㄤ ㄑㄧㄢˊ" },
-                    { text: "寒梅著花未", zhuyin: "ㄏㄢˊ ㄇㄟˊ ㄓㄨㄛˊ ㄏㄨㄚ ㄨㄟˋ" }
+                    { text: "君自故鄉來，", zhuyin: "ㄐㄩㄣ ㄗˋ ㄍㄨˋ ㄒㄧㄤ ㄌㄞˊ " },
+                    { text: "應知故鄉事。", zhuyin: "ㄧㄥ ㄓ ㄍㄨˋ ㄒㄧㄤ ㄕˋ " },
+                    { text: "來日綺窗前，", zhuyin: "ㄌㄞˊ ㄖˋ ㄑㄧˇ ㄔㄨㄤ ㄑㄧㄢˊ " },
+                    { text: "寒梅著花未？", zhuyin: "ㄏㄢˊ ㄇㄟˊ ㄓㄨㄛˊ ㄏㄨㄚ ㄨㄟˋ " }
                 ]
             },
             {
                 title: "逢雪宿芙蓉山主人", titleZhuyin: ["ㄈㄥˊ", "ㄒㄩㄝˇ", "ㄙㄨˋ", "ㄈㄨˊ", "ㄖㄨˊ", "ㄕㄢ", "ㄓㄨˇ", "ㄖㄣˊ"],
                 author: "劉長卿", authorZhuyin: ["ㄌㄧㄡˊ", "ㄔㄤˊ", "ㄑㄧㄥ"],
                 lines: [
-                    { text: "日暮蒼山遠", zhuyin: "ㄖˋ ㄇㄨˋ ㄘㄤ ㄕㄢ ㄩㄢˇ" },
-                    { text: "天寒白屋貧", zhuyin: "ㄊㄧㄢ ㄏㄢˊ ㄅㄞˊ ㄨ ㄆㄧㄣˊ" },
-                    { text: "柴門聞犬吠", zhuyin: "ㄔㄞˊ ㄇㄣˊ ㄨㄣˊ ㄑㄩㄢˇ ㄈㄟˋ" },
-                    { text: "風雪夜歸人", zhuyin: "ㄈㄥ ㄒㄩㄝˇ ㄧㄝˋ ㄍㄨㄟ ㄖㄣˊ" }
+                    { text: "日暮蒼山遠，", zhuyin: "ㄖˋ ㄇㄨˋ ㄘㄤ ㄕㄢ ㄩㄢˇ " },
+                    { text: "天寒白屋貧。", zhuyin: "ㄊㄧㄢ ㄏㄢˊ ㄅㄞˊ ㄨ ㄆㄧㄣˊ " },
+                    { text: "柴門聞犬吠，", zhuyin: "ㄔㄞˊ ㄇㄣˊ ㄨㄣˊ ㄑㄩㄢˇ ㄈㄟˋ " },
+                    { text: "風雪夜歸人。", zhuyin: "ㄈㄥ ㄒㄩㄝˇ ㄧㄝˋ ㄍㄨㄟ ㄖㄣˊ " }
                 ]
             },
             {
                 title: "江南逢李龜年", titleZhuyin: ["ㄐㄧㄢ", "ㄋㄢˊ", "ㄈㄥˊ", "ㄌㄧˇ", "ㄍㄨㄟ", "ㄋㄧㄢˊ"],
                 author: "杜甫", authorZhuyin: ["ㄉㄨˋ", "ㄈㄨˇ"],
                 lines: [
-                    { text: "岐王宅裡尋常見", zhuyin: "ㄑㄧˊ ㄨㄤˊ ㄓㄞˊ ㄌㄧˇ ㄒㄩㄣˊ ㄔㄤˊ ㄐㄧㄢˋ" },
-                    { text: "崔九堂前幾度聞", zhuyin: "ㄘㄨㄟ ㄐㄧㄡˇ ㄊㄤˊ ㄑㄧㄢˊ ㄐㄧˇ ㄉㄨˋ ㄨㄣˊ" },
-                    { text: "正是江南好風景", zhuyin: "ㄓㄥˋ ㄕˋ ㄐㄧㄢ ㄋㄢˊ ㄏㄠˇ ㄈㄥ ㄐㄧㄥˇ" },
-                    { text: "落花時節又逢君", zhuyin: "ㄌㄨㄛˋ ㄏㄨㄚ ㄕˊ ㄐㄧㄝˊ ㄧㄡˋ ㄈㄥ ㄐㄩㄣ" }
+                    { text: "岐王宅裡尋常見，", zhuyin: "ㄑㄧˊ ㄨㄤˊ ㄓㄞˊ ㄌㄧˇ ㄒㄩㄣˊ ㄔㄤˊ ㄐㄧㄢˋ " },
+                    { text: "崔九堂前幾度聞。", zhuyin: "ㄘㄨㄟ ㄐㄧㄡˇ ㄊㄤˊ ㄑㄧㄢˊ ㄐㄧˇ ㄉㄨˋ ㄨㄣˊ " },
+                    { text: "正是江南好風景，", zhuyin: "ㄓㄥˋ ㄕˋ ㄐㄧㄢ ㄋㄢˊ ㄏㄠˇ ㄈㄥ ㄐㄧㄥˇ " },
+                    { text: "落花時節又逢君。", zhuyin: "ㄌㄨㄛˋ ㄏㄨㄚ ㄕˊ ㄐㄧㄝˊ ㄧㄡˋ ㄈㄥ ㄐㄩㄣ " }
                 ]
             },
             {
                 title: "贈汪倫", titleZhuyin: ["ㄗㄨㄥˋ", "ㄨㄤ", "ㄌㄨㄣˊ"],
                 author: "李白", authorZhuyin: ["ㄌㄧˇ", "ㄅㄞˊ"],
                 lines: [
-                    { text: "李白乘舟將欲行", zhuyin: "ㄌㄧˇ ㄅㄞˊ ㄔㄥˊ ㄓㄡ ㄐㄧㄤ ㄩˋ ㄒㄧㄥˊ" },
-                    { text: "忽聞岸上踏歌聲", zhuyin: "ㄏㄨ ㄨㄣˊ ㄢˋ ㄕㄤˋ ㄊㄚˋ ㄍㄜ ㄕㄥ" },
-                    { text: "桃花潭水深千尺", zhuyin: "ㄊㄠˊ ㄏㄨㄚ ㄊㄢˊ ㄕㄨㄟˇ ㄕㄣ ㄑㄧㄢ ㄔˇ" },
-                    { text: "不及汪倫送我情", zhuyin: "ㄅㄨˋ ㄐㄧˊ ㄨㄤ ㄌㄨㄣˊ ㄙㄨㄥˋ ㄨㄛˇ ㄑㄧㄥˊ" }
+                    { text: "李白乘舟將欲行，", zhuyin: "ㄌㄧˇ ㄅㄞˊ ㄔㄥˊ ㄓㄡ ㄐㄧㄤ ㄩˋ ㄒㄧㄥˊ " },
+                    { text: "忽聞岸上踏歌聲。", zhuyin: "ㄏㄨ ㄨㄣˊ ㄢˋ ㄕㄤˋ ㄊㄚˋ ㄍㄜ ㄕㄥ " },
+                    { text: "桃花潭水深千尺，", zhuyin: "ㄊㄠˊ ㄏㄨㄚ ㄊㄢˊ ㄕㄨㄟˇ ㄕㄣ ㄑㄧㄢ ㄔˇ " },
+                    { text: "不及汪倫送我情。", zhuyin: "ㄅㄨˋ ㄐㄧˊ ㄨㄤ ㄌㄨㄣˊ ㄙㄨㄥˋ ㄨㄛˇ ㄑㄧㄥˊ " }
                 ]
             },
             {
                 title: "黃鶴樓送孟浩然之廣陵", titleZhuyin: ["ㄏㄨㄤˊ", "ㄏㄜˋ", "ㄌㄡˊ", "ㄙㄨㄥˋ", "ㄇㄥˋ", "ㄏㄠˋ", "ㄖㄢˊ", "ㄓ", "ㄍㄨㄤˇ", "ㄌㄧㄥˊ"],
                 author: "李白", authorZhuyin: ["ㄌㄧˇ", "ㄅㄞˊ"],
                 lines: [
-                    { text: "故人西辭黃鶴樓", zhuyin: "ㄍㄨˋ ㄖㄣˊ ㄒㄧ ㄘˊ ㄏㄨㄤˊ ㄏㄜˋ ㄌㄡˊ" },
-                    { text: "煙花三月下揚州", zhuyin: "ㄧㄢ ㄏㄨㄚ ㄙㄢ ㄩㄝˋ ㄒㄧㄚˋ ㄧㄤˊ ㄓㄡ" },
-                    { text: "孤帆遠影碧空盡", zhuyin: "ㄍㄨ ㄈㄢ ㄩㄢˇ ㄧㄥˇ ㄅㄧˋ ㄎㄨㄥ ㄐㄧㄣˋ" },
-                    { text: "唯見長江天際流", zhuyin: "ㄨㄟˊ ㄐㄧㄢˋ ㄔㄤˊ ㄐㄧㄤ ㄊㄧㄢ ㄐㄧˋ ㄌㄧㄡˊ" }
+                    { text: "故人西辭黃鶴樓，", zhuyin: "ㄍㄨˋ ㄖㄣˊ ㄒㄧ ㄘˊ ㄏㄨㄤˊ ㄏㄜˋ ㄌㄡˊ " },
+                    { text: "煙花三月下揚州。", zhuyin: "ㄧㄢ ㄏㄨㄚ ㄙㄢ ㄩㄝˋ ㄒㄧㄚˋ ㄧㄤˊ ㄓㄡ " },
+                    { text: "孤帆遠影碧空盡，", zhuyin: "ㄍㄨ ㄈㄢ ㄩㄢˇ ㄧㄥˇ ㄅㄧˋ ㄎㄨㄥ ㄐㄧㄣˋ " },
+                    { text: "唯見長江天際流。", zhuyin: "ㄨㄟˊ ㄐㄧㄢˋ ㄔㄤˊ ㄐㄧㄤ ㄊㄧㄢ ㄐㄧˋ ㄌㄧㄡˊ " }
                 ]
             },
             {
                 title: "回鄉偶書", titleZhuyin: ["ㄏㄨㄟˊ", "ㄒㄧㄤ", "ㄡˇ", "ㄕㄨ"],
                 author: "賀知章", authorZhuyin: ["ㄏㄜˋ", "ㄓ", "ㄓㄤ"],
                 lines: [
-                    { text: "少小離家老大回", zhuyin: "ㄕㄠˋ ㄒㄧㄠˇ ㄌㄧˊ ㄐㄧㄚ ㄌㄠˇ ㄉㄚˋ ㄏㄨㄟˊ" },
-                    { text: "鄉音無改鬢毛衰", zhuyin: "ㄒㄧㄤ ㄧㄣ ㄨˊ ㄍㄞˇ ㄅㄧㄣˋ ㄇㄠˊ ㄘㄨㄟ" },
-                    { text: "兒童相見不相識", zhuyin: "ㄦˊ ㄊㄨㄥˊ ㄒㄧㄤ ㄐㄧㄢˋ ㄅㄨˋ ㄒㄧㄤ ㄕˋ" },
-                    { text: "笑問客從何處來", zhuyin: "ㄒㄧㄠˋ ㄨㄣˋ ㄎㄜˋ ㄘㄨㄥˊ ㄏㄜˊ ㄔㄨˋ ㄌㄞˊ" }
+                    { text: "少小離家老大回，", zhuyin: "ㄕㄠˋ ㄒㄧㄠˇ ㄌㄧˊ ㄐㄧㄚ ㄌㄠˇ ㄉㄚˋ ㄏㄨㄟˊ " },
+                    { text: "鄉音無改鬢毛衰。", zhuyin: "ㄒㄧㄤ ㄧㄣ ㄨˊ ㄍㄞˇ ㄅㄧㄣˋ ㄇㄠˊ ㄘㄨㄟ " },
+                    { text: "兒童相見不相識，", zhuyin: "ㄦˊ ㄊㄨㄥˊ ㄒㄧㄤ ㄐㄧㄢˋ ㄅㄨˋ ㄒㄧㄤ ㄕˋ " },
+                    { text: "笑問客從何處來？", zhuyin: "ㄒㄧㄠˋ ㄨㄣˋ ㄎㄜˋ ㄘㄨㄥˊ ㄏㄜˊ ㄔㄨˋ ㄌㄞˊ " }
                 ]
             },
             {
                 title: "涼州詞", titleZhuyin: ["ㄌㄧㄤˊ", "ㄓㄡ", "ㄘˊ"],
                 author: "王之渙", authorZhuyin: ["ㄨㄤˊ", "ㄓ", "ㄏㄨㄢˋ"],
                 lines: [
-                    { text: "黃河遠上白雲間", zhuyin: "ㄏㄨㄤˊ ㄏㄜˊ ㄩㄢˇ ㄕㄤˋ ㄅㄞˊ ㄩㄣˊ ㄐㄧㄢ" },
-                    { text: "一片孤城萬仞山", zhuyin: "ㄧˊ ㄆㄧㄢˋ ㄍㄨ ㄔㄥˊ ㄨㄢˋ ㄖㄣˋ ㄕㄢ" },
-                    { text: "羌笛何須怨楊柳", zhuyin: "ㄑㄧㄤ ㄉㄧˊ ㄏㄜˊ ㄒㄩ ㄩㄢˋ ㄧㄤˊ ㄌㄧㄡˇ" },
-                    { text: "春風不度玉門關", zhuyin: "ㄔㄨㄣ ㄈㄥ ㄅㄨˊ ㄉㄨˋ ㄩˋ ㄇㄣˊ ㄍㄨㄢ" }
+                    { text: "黃河遠上白雲間，", zhuyin: "ㄏㄨㄤˊ ㄏㄜˊ ㄩㄢˇ ㄕㄤˋ ㄅㄞˊ ㄩㄣˊ ㄐㄧㄢ " },
+                    { text: "一片孤城萬仞山。", zhuyin: "ㄧˊ ㄆㄧㄢˋ ㄍㄨ ㄔㄥˊ ㄨㄢˋ ㄖㄣˋ ㄕㄢ " },
+                    { text: "羌笛何須怨楊柳，", zhuyin: "ㄑㄧㄤ ㄉㄧˊ ㄏㄜˊ ㄒㄩ ㄩㄢˋ ㄧㄤˊ ㄌㄧㄡˇ " },
+                    { text: "春風不度玉門關。", zhuyin: "ㄔㄨㄣ ㄈㄥ ㄅㄨˊ ㄉㄨˋ ㄩˋ ㄇㄣˊ ㄍㄨㄢ " }
                 ]
             },
             {
                 title: "出塞", titleZhuyin: ["ㄔㄨ", "ㄙㄞˋ"],
                 author: "王昌齡", authorZhuyin: ["ㄨㄤˊ", "ㄔㄤ", "ㄌㄧㄥˊ"],
                 lines: [
-                    { text: "秦時明月漢時關", zhuyin: "ㄑㄧㄣˊ ㄕˊ ㄇㄧㄥˊ ㄩㄝˋ ㄏㄢˋ ㄕˊ ㄍㄨㄢ" },
-                    { text: "萬里長征人未還", zhuyin: "ㄨㄢˋ ㄌㄧˇ ㄔㄤˊ ㄓㄥ ㄖㄣˊ ㄨㄟˋ ㄏㄨㄢˊ" },
-                    { text: "任使龍城飛將在", zhuyin: "ㄉㄢˋ ㄕˇ ㄌㄨㄥˊ ㄔㄥˊ ㄈㄟ ㄐㄧㄤˋ ㄗㄞˋ" },
-                    { text: "不教胡馬度陰山", zhuyin: "ㄅㄨˋ ㄐㄧㄠˋ ㄏㄨˊ ㄇㄚˇ ㄉㄨˋ ㄧㄣ ㄕㄢ" }
+                    { text: "秦時明月漢時關，", zhuyin: "ㄑㄧㄣˊ ㄕˊ ㄇㄧㄥˊ ㄩㄝˋ ㄏㄢˋ ㄕˊ ㄍㄨㄢ " },
+                    { text: "萬里長征人未還。", zhuyin: "ㄨㄢˋ ㄌㄧˇ ㄔㄤˊ ㄓㄥ ㄖㄣˊ ㄨㄟˋ ㄏㄨㄢˊ " },
+                    { text: "任使龍城飛將在，", zhuyin: "ㄉㄢˋ ㄕˇ ㄌㄨㄥˊ ㄔㄥˊ ㄈㄟ ㄐㄧㄤˋ ㄗㄞˋ " },
+                    { text: "不教胡馬度陰山。", zhuyin: "ㄅㄨˋ ㄐㄧㄠˋ ㄏㄨˊ ㄇㄚˇ ㄉㄨˋ ㄧㄣ ㄕㄢ " }
                 ]
             },
             {
                 title: "芙蓉樓送辛漸", titleZhuyin: ["ㄈㄨˊ", "ㄖㄨˊ", "ㄌㄡˊ", "ㄙㄨㄥˋ", "ㄒㄧㄣ", "ㄐㄧㄢˋ"],
                 author: "王昌齡", authorZhuyin: ["ㄨㄤˊ", "ㄔㄤ", "ㄌㄧㄥˊ"],
                 lines: [
-                    { text: "寒雨連江夜入吳", zhuyin: "ㄏㄢˊ ㄩˇ ㄌㄧㄢˊ ㄐㄧㄤ ㄧㄝˋ ㄖㄨˋ ㄨˊ" },
-                    { text: "平明送客楚山孤", zhuyin: "ㄆㄧㄥˊ ㄇㄧㄥˊ ㄙㄨㄥˋ ㄎㄜˋ ㄔㄨˇ ㄕㄢ ㄍㄨ" },
-                    { text: "洛陽親友如相問", zhuyin: "ㄌㄨㄛˋ ㄧㄤˊ ㄑㄧㄣ ㄧㄡˇ ㄖㄨˊ ㄒㄧㄤ ㄨㄣˋ" },
-                    { text: "一片冰心在玉壺", zhuyin: "ㄧˊ ㄆㄧㄢˋ ㄅㄧㄥ ㄒㄧㄣ ㄗㄞˋ ㄩˋ ㄏㄨˊ" }
+                    { text: "寒雨連江夜入吳，", zhuyin: "ㄏㄢˊ ㄩˇ ㄌㄧㄢˊ ㄐㄧㄤ ㄧㄝˋ ㄖㄨˋ ㄨˊ " },
+                    { text: "平明送客楚山孤。", zhuyin: "ㄆㄧㄥˊ ㄇㄧㄥˊ ㄙㄨㄥˋ ㄎㄜˋ ㄔㄨˇ ㄕㄢ ㄍㄨ " },
+                    { text: "洛陽親友如相問，", zhuyin: "ㄌㄨㄛˋ ㄧㄤˊ ㄑㄧㄣ ㄧㄡˇ ㄖㄨˊ ㄒㄧㄤ ㄨㄣˋ " },
+                    { text: "一片冰心在玉壺。", zhuyin: "ㄧˊ ㄆㄧㄢˋ ㄅㄧㄥ ㄒㄧㄣ ㄗㄞˋ ㄩˋ ㄏㄨˊ " }
                 ]
             },
             {
                 title: "閨怨", titleZhuyin: ["ㄍㄨㄟ", "ㄩㄢˋ"],
                 author: "王昌齡", authorZhuyin: ["ㄨㄤˊ", "ㄔㄤ", "ㄌㄧㄥˊ"],
                 lines: [
-                    { text: "閨中少婦不知愁", zhuyin: "ㄍㄨㄟ ㄓㄨㄥ ㄕㄠˇ ㄈㄨˋ ㄅㄨˋ ㄓ ㄔㄡˊ" },
-                    { text: "春日凝妝上翠樓", zhuyin: "ㄔㄨㄣ ㄖˋ ㄋㄧㄥˊ ㄓㄨㄤ ㄕㄤˋ ㄘㄨㄟˋ ㄌㄡˊ" },
-                    { text: "忽見陌頭楊柳色", zhuyin: "ㄏㄨ ㄐㄧㄢˋ ㄇㄛˋ ㄊㄡˊ ㄧㄤˊ ㄌㄧㄡˇ ㄙㄜˋ" },
-                    { text: "悔教夫婿覓封侯", zhuyin: "ㄏㄨㄟˇ ㄐㄧㄠˋ ㄈㄨ ㄒㄩˋ ㄇㄧˋ ㄈㄥ ㄏㄡˊ" }
+                    { text: "閨中少婦不知愁，", zhuyin: "ㄍㄨㄟ ㄓㄨㄥ ㄕㄠˇ ㄈㄨˋ ㄅㄨˋ ㄓ ㄔㄡˊ " },
+                    { text: "春日凝妝上翠樓。", zhuyin: "ㄔㄨㄣ ㄖˋ ㄋㄧㄥˊ ㄓㄨㄤ ㄕㄤˋ ㄘㄨㄟˋ ㄌㄡˊ " },
+                    { text: "忽見陌頭楊柳色，", zhuyin: "ㄏㄨ ㄐㄧㄢˋ ㄇㄛˋ ㄊㄡˊ ㄧㄤˊ ㄌㄧㄡˇ ㄙㄜˋ " },
+                    { text: "悔教夫婿覓封侯。", zhuyin: "ㄏㄨㄟˇ ㄐㄧㄠˋ ㄈㄨ ㄒㄩˋ ㄇㄧˋ ㄈㄥ ㄏㄡˊ " }
                 ]
             },
             {
                 title: "春怨", titleZhuyin: ["ㄔㄨㄣ", "ㄩㄢˋ"],
                 author: "金昌緒", authorZhuyin: ["ㄐㄧㄣ", "ㄔㄤ", "ㄒㄩˋ"],
                 lines: [
-                    { text: "打起黃鶯兒", zhuyin: "ㄉㄚˇ ㄑㄧˇ ㄏㄨㄤˊ ㄧㄥ ㄦˊ" },
-                    { text: "莫教枝上啼", zhuyin: "ㄇㄛˋ ㄐㄧㄠˋ ㄓ ㄕㄤˋ ㄊㄧˊ" },
-                    { text: "啼時驚妾夢", zhuyin: "ㄊㄧˊ ㄕˊ ㄐㄧㄥ ㄑㄧㄝˋ ㄇㄥˋ" },
-                    { text: "不得到遼西", zhuyin: "ㄅㄨˋ ㄉㄜˊ ㄉㄠˋ ㄌㄧㄠˊ ㄒㄧ" }
+                    { text: "打起黃鶯兒，", zhuyin: "ㄉㄚˇ ㄑㄧˇ ㄏㄨㄤˊ ㄧㄥ ㄦˊ " },
+                    { text: "莫教枝上啼。", zhuyin: "ㄇㄛˋ ㄐㄧㄠˋ ㄓ ㄕㄤˋ ㄊㄧˊ " },
+                    { text: "啼時驚妾夢，", zhuyin: "ㄊㄧˊ ㄕˊ ㄐㄧㄥ ㄑㄧㄝˋ ㄇㄥˋ " },
+                    { text: "不得到遼西。", zhuyin: "ㄅㄨˋ ㄉㄜˊ ㄉㄠˋ ㄌㄧㄠˊ ㄒㄧ " }
                 ]
             },
             {
                 title: "烏衣巷", titleZhuyin: ["ㄨ", "ㄧ", "ㄒㄧㄤˋ"],
                 author: "劉禹錫", authorZhuyin: ["ㄌㄧㄡˇ", "ㄩˇ", "ㄒㄧ"],
                 lines: [
-                    { text: "朱雀橋邊野草花", zhuyin: "ㄓㄨ ㄑㄩㄝˋ ㄑㄧㄠˊ ㄅㄧㄢ ㄧㄝˇ ㄘㄠˇ ㄏㄨㄚ" },
-                    { text: "烏衣巷口夕陽斜", zhuyin: "ㄨ ㄧ ㄒㄧㄤˋ ㄎㄡˇ ㄒㄧˋ ㄧㄤˊ ㄒㄧㄝˊ" },
-                    { text: "舊時王謝堂前燕", zhuyin: "ㄐㄧㄡˋ ㄕˊ ㄨㄤˊ ㄒㄧㄝˋ ㄊㄤˊ ㄑㄧㄢˊ ㄧㄢˋ" },
-                    { text: "飛入尋常百姓家", zhuyin: "ㄈㄟ ㄖㄨˋ ㄒㄩㄣˊ ㄔㄤˊ ㄅㄞˇ ㄒㄧㄥˋ ㄐㄧㄚ" }
+                    { text: "朱雀橋邊野草花，", zhuyin: "ㄓㄨ ㄑㄩㄝˋ ㄑㄧㄠˊ ㄅㄧㄢ ㄧㄝˇ ㄘㄠˇ ㄏㄨㄚ " },
+                    { text: "烏衣巷口夕陽斜。", zhuyin: "ㄨ ㄧ ㄒㄧㄤˋ ㄎㄡˇ ㄒㄧˋ ㄧㄤˊ ㄒㄧㄝˊ " },
+                    { text: "舊時王謝堂前燕，", zhuyin: "ㄐㄧㄡˋ ㄕˊ ㄨㄤˊ ㄒㄧㄝˋ ㄊㄤˊ ㄑㄧㄢˊ ㄧㄢˋ " },
+                    { text: "飛入尋常百姓家。", zhuyin: "ㄈㄟ ㄖㄨˋ ㄒㄩㄣˊ ㄔㄤˊ ㄅㄞˇ ㄒㄧㄥˋ ㄐㄧㄚ " }
                 ]
             },
             {
                 title: "宮詞", titleZhuyin: ["ㄍㄨㄥ", "ㄘˊ"],
                 author: "白居易", authorZhuyin: ["ㄅㄞˊ", "ㄐㄩ", "ㄧˋ"],
                 lines: [
-                    { text: "淚濕羅巾夢不成", zhuyin: "ㄌㄟˋ ㄕ ㄌㄨㄛˊ ㄐㄧㄣ ㄇㄥˋ ㄅㄨˋ ㄔㄥˊ" },
-                    { text: "夜深前殿按歌聲", zhuyin: "ㄧㄝˋ ㄕㄣ ㄑㄧㄢˊ ㄉㄧㄢˋ ㄢˋ ㄍㄜ ㄕㄥ" },
-                    { text: "紅顏未老恩先斷", zhuyin: "ㄏㄨㄥˊ ㄧㄢˊ ㄨㄟˋ ㄌㄠˇ ㄣ ㄒㄧㄢ ㄉㄨㄢˋ" },
-                    { text: "斜倚薰籠坐到明", zhuyin: "ㄒㄧㄝˊ ㄧˇ ㄒㄩㄣ ㄌㄨㄥˊ ㄗㄨㄛˋ ㄉㄠˋ ㄇㄧㄥˊ" }
+                    { text: "淚濕羅巾夢不成，", zhuyin: "ㄌㄟˋ ㄕ ㄌㄨㄛˊ ㄐㄧㄣ ㄇㄥˋ ㄅㄨˋ ㄔㄥˊ " },
+                    { text: "夜深前殿按歌聲。", zhuyin: "ㄧㄝˋ ㄕㄣ ㄑㄧㄢˊ ㄉㄧㄢˋ ㄢˋ ㄍㄜ ㄕㄥ " },
+                    { text: "紅顏未老恩先斷，", zhuyin: "ㄏㄨㄥˊ ㄧㄢˊ ㄨㄟˋ ㄌㄠˇ ㄣ ㄒㄧㄢ ㄉㄨㄢˋ " },
+                    { text: "斜倚薰籠坐到明。", zhuyin: "ㄒㄧㄝˊ ㄧˇ ㄒㄩㄣ ㄌㄨㄥˊ ㄗㄨㄛˋ ㄉㄠˋ ㄇㄧㄥˊ " }
                 ]
             },
             {
                 title: "楓橋夜泊", titleZhuyin: ["ㄈㄥ", "ㄑㄧㄠˊ", "ㄧㄝˋ", "ㄅㄛˊ"],
                 author: "張繼", authorZhuyin: ["ㄓㄤ", "ㄐㄧˋ"],
                 lines: [
-                    { text: "月落烏啼霜滿天", zhuyin: "ㄩㄝˋ ㄌㄨㄛˋ ㄨ ㄊㄧˊ ㄕㄨㄤ ㄇㄢˇ ㄊㄧㄢ" },
-                    { text: "江楓漁火對愁眠", zhuyin: "ㄐㄧㄤ ㄈㄥ ㄩˊ ㄏㄨㄛˇ ㄉㄨㄟˋ ㄔㄡˊ ㄇㄧㄢˊ" },
-                    { text: "姑蘇城外寒山寺", zhuyin: "ㄍㄨ ㄙㄨ ㄔㄥˊ ㄨㄞˋ ㄏㄢˊ ㄕㄢ ㄙˋ" },
-                    { text: "夜半鐘聲到客船", zhuyin: "ㄧㄝˋ ㄅㄢˋ ㄓㄨㄥ ㄕㄥ ㄉㄠˋ ㄎㄜˋ ㄔㄨㄢˊ" }
+                    { text: "月落烏啼霜滿天，", zhuyin: "ㄩㄝˋ ㄌㄨㄛˋ ㄨ ㄊㄧˊ ㄕㄨㄤ ㄇㄢˇ ㄊㄧㄢ " },
+                    { text: "江楓漁火對愁眠。", zhuyin: "ㄐㄧㄤ ㄈㄥ ㄩˊ ㄏㄨㄛˇ ㄉㄨㄟˋ ㄔㄡˊ ㄇㄧㄢˊ " },
+                    { text: "姑蘇城外寒山寺，", zhuyin: "ㄍㄨ ㄙㄨ ㄔㄥˊ ㄨㄞˋ ㄏㄢˊ ㄕㄢ ㄙˋ " },
+                    { text: "夜半鐘聲到客船。", zhuyin: "ㄧㄝˋ ㄅㄢˋ ㄓㄨㄥ ㄕㄥ ㄉㄠˋ ㄎㄜˋ ㄔㄨㄢˊ " }
                 ]
             },
             {
                 title: "寒食", titleZhuyin: ["ㄏㄢˊ", "ㄕˊ"],
                 author: "韓翃", authorZhuyin: ["ㄏㄢˊ", "ㄏㄨㄥˊ"],
                 lines: [
-                    { text: "春城無處不飛花", zhuyin: "ㄔㄨㄣ ㄔㄥˊ ㄨˊ ㄔㄨˋ ㄅㄨˋ ㄈㄟ ㄏㄨㄚ" },
-                    { text: "寒食東風御柳斜", zhuyin: "ㄏㄢˊ ㄕˊ ㄉㄨㄥ ㄈㄥ ㄩˋ ㄌㄧㄡˇ ㄒㄧㄝˊ" },
-                    { text: "日暮漢宮傳蠟燭", zhuyin: "ㄖˋ ㄇㄨˋ ㄏㄢˋ ㄍㄨㄥ ㄔㄨㄢˊ ㄌㄚˋ ㄓㄨˊ" },
-                    { text: "輕煙散入五侯家", zhuyin: "ㄑㄧㄥ ㄧㄢ ㄙㄢˋ ㄖㄨˋ ㄨˇ ㄏㄡˊ ㄐㄧㄚ" }
+                    { text: "春城無處不飛花，", zhuyin: "ㄔㄨㄣ ㄔㄥˊ ㄨˊ ㄔㄨˋ ㄅㄨˋ ㄈㄟ ㄏㄨㄚ " },
+                    { text: "寒食東風御柳斜。", zhuyin: "ㄏㄢˊ ㄕˊ ㄉㄨㄥ ㄈㄥ ㄩˋ ㄌㄧㄡˇ ㄒㄧㄝˊ " },
+                    { text: "日暮漢宮傳蠟燭，", zhuyin: "ㄖˋ ㄇㄨˋ ㄏㄢˋ ㄍㄨㄥ ㄔㄨㄢˊ ㄌㄚˋ ㄓㄨˊ " },
+                    { text: "輕煙散入五侯家。", zhuyin: "ㄑㄧㄥ ㄧㄢ ㄙㄢˋ ㄖㄨˋ ㄨˇ ㄏㄡˊ ㄐㄧㄚ " }
                 ]
             },
             {
                 title: "月夜", titleZhuyin: ["ㄩㄝˋ", "ㄧㄝˋ"],
                 author: "劉方平", authorZhuyin: ["ㄌㄧㄡˊ", "ㄈㄤ", "ㄆㄧㄥˊ"],
                 lines: [
-                    { text: "更深月色半人家", zhuyin: "ㄍㄥ ㄕㄣ ㄩㄝˋ ㄙㄜˋ ㄅㄢˋ ㄖㄣˊ ㄐㄧㄚ" },
-                    { text: "北斗闌干南斗斜", zhuyin: "ㄅㄟˇ ㄉㄡˇ ㄌㄢˊ ㄍㄢ ㄋㄢˊ ㄉㄡˇ ㄒㄧㄝˊ" },
-                    { text: "今夜偏知春氣暖", zhuyin: "ㄐㄧㄣ ㄧㄝˋ ㄆㄧㄢ ㄓ ㄔㄨㄣ ㄑㄧˋ ㄋㄨㄢˇ" },
-                    { text: "蟲聲新透綠窗紗", zhuyin: "ㄔㄨㄥˊ ㄕㄥ ㄒㄧㄣ ㄊㄡˋ ㄌㄩˋ ㄔㄨㄤ ㄕㄚ" }
+                    { text: "更深月色半人家，", zhuyin: "ㄍㄥ ㄕㄣ ㄩㄝˋ ㄙㄜˋ ㄅㄢˋ ㄖㄣˊ ㄐㄧㄚ " },
+                    { text: "北斗闌干南斗斜。", zhuyin: "ㄅㄟˇ ㄉㄡˇ ㄌㄢˊ ㄍㄢ ㄋㄢˊ ㄉㄡˇ ㄒㄧㄝˊ " },
+                    { text: "今夜偏知春氣暖，", zhuyin: "ㄐㄧㄣ ㄧㄝˋ ㄆㄧㄢ ㄓ ㄔㄨㄣ ㄑㄧˋ ㄋㄨㄢˇ " },
+                    { text: "蟲聲新透綠窗紗。", zhuyin: "ㄔㄨㄥˊ ㄕㄥ ㄒㄧㄣ ㄊㄡˋ ㄌㄩˋ ㄔㄨㄤ ㄕㄚ " }
                 ]
             },
             {
                 title: "春怨 (劉)", titleZhuyin: ["ㄔㄨㄣ", "ㄩㄢˋ"],
                 author: "劉方平", authorZhuyin: ["ㄌㄧㄡˊ", "ㄈㄤ", "ㄆㄧㄥˊ"],
                 lines: [
-                    { text: "紗窗日落漸黃昏", zhuyin: "ㄕㄚ ㄔㄨㄤ ㄖˋ ㄌㄨㄛˋ ㄐㄧㄢˋ ㄏㄨㄤˊ ㄏㄨㄣ" },
-                    { text: "金屋無人見淚痕", zhuyin: "ㄐㄧㄣ ㄨ ㄨˊ ㄖㄣˊ ㄐㄧㄢˋ ㄌㄟˋ ㄏ痕" },
-                    { text: "寂寞空庭春欲晚", zhuyin: "ㄐㄧˊ ㄇㄛˋ ㄎㄨㄥ ㄊㄧㄥˊ ㄔㄨㄣ ㄩˋ ㄨㄢˇ" },
-                    { text: "梨花滿地不開門", zhuyin: "ㄌㄧˊ ㄏㄨㄚ ㄇㄢˇ ㄉㄧˋ ㄅㄨˋ ㄎㄞ ㄇㄣˊ" }
+                    { text: "紗窗日落漸黃昏，", zhuyin: "ㄕㄚ ㄔㄨㄤ ㄖˋ ㄌㄨㄛˋ ㄐㄧㄢˋ ㄏㄨㄤˊ ㄏㄨㄣ " },
+                    { text: "金屋無人見淚痕。", zhuyin: "ㄐㄧㄣ ㄨ ㄨˊ ㄖㄣˊ ㄐㄧㄢˋ ㄌㄟˋ ㄏㄣˊ " },
+                    { text: "寂寞空庭春欲晚，", zhuyin: "ㄐㄧˊ ㄇㄛˋ ㄎㄨㄥ ㄊㄧㄥˊ ㄔㄨㄣ ㄩˋ ㄨㄢˇ " },
+                    { text: "梨花滿地不開門。", zhuyin: "ㄌㄧˊ ㄏㄨㄚ ㄇㄢˇ ㄉㄧˋ ㄅㄨˋ ㄎㄞ ㄇㄣˊ " }
                 ]
             },
             {
                 title: "征人怨", titleZhuyin: ["ㄓㄥ", "ㄖㄣˊ", "ㄩㄢˋ"],
                 author: "柳中庸", authorZhuyin: ["ㄌㄧㄡˇ", "ㄓㄨㄥ", "ㄩㄥ"],
                 lines: [
-                    { text: "歲歲金河復玉關", zhuyin: "ㄙㄨㄟˋ ㄙㄨㄟˋ ㄐㄧㄣ ㄏㄜˊ ㄈㄨˋ ㄩˋ ㄍㄨㄢ" },
-                    { text: "朝朝馬策與刀環", zhuyin: "ㄓㄠ ㄓㄠ ㄇㄚˇ ㄘㄜˋ ㄩˇ ㄉㄠ ㄏㄨㄢˊ" },
-                    { text: "三春白雪歸青塚", zhuyin: "ㄙㄢ ㄔㄨㄣ ㄅㄞˊ ㄒㄩㄝˇ ㄍㄨㄟ ㄑㄧㄥ ㄓㄨㄥˇ" },
-                    { text: "萬里黃河繞黑山", zhuyin: "ㄨㄢˋ ㄌㄧˇ ㄏㄨㄤˊ ㄏㄜˊ ㄖㄠˋ ㄏㄟ ㄕㄢ" }
+                    { text: "歲歲金河復玉關，", zhuyin: "ㄙㄨㄟˋ ㄙㄨㄟˋ ㄐㄧㄣ ㄏㄜˊ ㄈㄨˋ ㄩˋ ㄍㄨㄢ " },
+                    { text: "朝朝馬策與刀環。", zhuyin: "ㄓㄠ ㄓㄠ ㄇㄚˇ ㄘㄜˋ ㄩˇ ㄉㄠ ㄏㄨㄢˊ " },
+                    { text: "三春白雪歸青塚，", zhuyin: "ㄙㄢ ㄔㄨㄣ ㄅㄞˊ ㄒㄩㄝˇ ㄍㄨㄟ ㄑㄧㄥ ㄓㄨㄥˇ " },
+                    { text: "萬里黃河繞黑山。", zhuyin: "ㄨㄢˋ ㄌㄧˇ ㄏㄨㄤˊ ㄏㄜˊ ㄖㄠˋ ㄏㄟ ㄕㄢ " }
                 ]
             },
             {
                 title: "蘇溪亭", titleZhuyin: ["ㄙㄨ", "ㄒㄧ", "ㄊㄧㄥˊ"],
                 author: "戴叔倫", authorZhuyin: ["ㄉㄞˋ", "ㄕㄨˊ", "ㄌㄨㄣˊ"],
                 lines: [
-                    { text: "蘇溪亭上草漫漫", zhuyin: "ㄙㄨ ㄒㄧ ㄊㄧㄥˊ ㄕㄤˋ ㄘㄠˇ ㄇㄢˋ ㄇㄢˋ" },
-                    { text: "誰倚東風十二闌", zhuyin: "ㄕㄟˊ ㄧˇ ㄉㄨㄥ ㄈㄥ ㄕˊ ㄦˋ ㄌㄢˊ" },
-                    { text: "燕子不歸春事晚", zhuyin: "ㄧㄢˋ ㄗˇ ㄅㄨˋ ㄍㄨㄟ ㄔㄨㄣ ㄕˋ ㄨㄢˇ" },
-                    { text: "一汀煙雨杏花寒", zhuyin: "ㄧˋ ㄊㄧㄥ ㄧㄢ ㄩˇ ㄒㄧㄥˋ ㄏㄨㄚ ㄏㄢˊ" }
+                    { text: "蘇溪亭上草漫漫，", zhuyin: "ㄙㄨ ㄒㄧ ㄊㄧㄥˊ ㄕㄤˋ ㄘㄠˇ ㄇㄢˋ ㄇㄢˋ " },
+                    { text: "誰倚東風十二闌？", zhuyin: "ㄕㄟˊ ㄧˇ ㄉㄨㄥ ㄈㄥ ㄕˊ ㄦˋ ㄌㄢˊ " },
+                    { text: "燕子不歸春事晚，", zhuyin: "ㄧㄢˋ ㄗˇ ㄅㄨˋ ㄍㄨㄟ ㄔㄨㄣ ㄕˋ ㄨㄢˇ " },
+                    { text: "一汀煙雨杏花寒。", zhuyin: "ㄧˋ ㄊㄧㄥ ㄧㄢ ㄩˇ ㄒㄧㄥˋ ㄏㄨㄚ ㄏㄢˊ " }
                 ]
             },
             {
                 title: "渡漢江", titleZhuyin: ["ㄉㄨˋ", "ㄏㄢˋ", "ㄐㄧㄤ"],
                 author: "宋之問", authorZhuyin: ["ㄙㄨㄥˋ", "ㄓ", "ㄨㄣˋ"],
                 lines: [
-                    { text: "嶺外音書斷", zhuyin: "ㄌㄧㄥˇ ㄨㄞˋ ㄧㄣ ㄕㄨ ㄉㄨㄢˋ" },
-                    { text: "經冬復歷春", zhuyin: "ㄐㄧㄥ ㄉㄨㄥ ㄈㄨˋ ㄌㄧˋ ㄔㄨㄣ" },
-                    { text: "近鄉情更怯", zhuyin: "ㄐㄧㄣˋ ㄒㄧㄤ ㄑㄧㄥˊ ㄍㄥˋ ㄑㄧㄝˋ" },
-                    { text: "不敢問來人", zhuyin: "ㄅㄨˋ ㄍㄢˇ ㄨㄣˋ ㄌㄞˊ ㄖㄣˊ" }
+                    { text: "嶺外音書斷，", zhuyin: "ㄌㄧㄥˇ ㄨㄞˋ ㄧㄣ ㄕㄨ ㄉㄨㄢˋ " },
+                    { text: "經冬復歷春。", zhuyin: "ㄐㄧㄥ ㄉㄨㄥ ㄈㄨˋ ㄌㄧˋ ㄔㄨㄣ " },
+                    { text: "近鄉情更怯，", zhuyin: "ㄐㄧㄣˋ ㄒㄧㄤ ㄑㄧㄥˊ ㄍㄥˋ ㄑㄧㄝˋ " },
+                    { text: "不敢問來人。", zhuyin: "ㄅㄨˋ ㄍㄢˇ ㄨㄣˋ ㄌㄞˊ ㄖㄣˊ " }
                 ]
             },
             {
                 title: "答人", titleZhuyin: ["ㄉㄚˊ", "ㄖㄣˊ"],
                 author: "太上隱者", authorZhuyin: ["ㄊㄞˋ", "ㄕㄤˋ", "ㄧㄣˇ", "ㄓㄜˇ"],
                 lines: [
-                    { text: "偶來松樹下", zhuyin: "ㄡˇ ㄌㄞˊ ㄙㄨㄥ ㄕㄨˋ ㄒㄧㄚˋ" },
-                    { text: "高枕石頭眠", zhuyin: "ㄍㄠ ㄓㄣˇ ㄕˊ ㄊㄡˊ ㄇㄧㄢˊ" },
-                    { text: "山中無曆日", zhuyin: "ㄕㄢ ㄓㄨㄥ ㄨˊ ㄌㄧˋ ㄖˋ" },
-                    { text: "寒盡不知年", zhuyin: "ㄏㄨˊ ㄐㄧㄣˋ ㄅㄨˋ ㄓ ㄋㄧㄢˊ" }
+                    { text: "偶來松樹下，", zhuyin: "ㄡˇ ㄌㄞˊ ㄙㄨㄥ ㄕㄨˋ ㄒㄧㄚˋ " },
+                    { text: "高枕石頭眠。", zhuyin: "ㄍㄠ ㄓㄣˇ ㄕˊ ㄊㄡˊ ㄇㄧㄢˊ " },
+                    { text: "山中無曆日，", zhuyin: "ㄕㄢ ㄓㄨㄥ ㄨˊ ㄌㄧˋ ㄖˋ " },
+                    { text: "寒盡不知年。", zhuyin: "ㄏㄨˊ ㄐㄧㄣˋ ㄅㄨˋ ㄓ ㄋㄧㄢˊ " }
                 ]
             },
             {
                 title: "哥舒歌", titleZhuyin: ["ㄍㄜ", "ㄕㄨ", "ㄍㄜ"],
                 author: "西鄙人", authorZhuyin: ["ㄒㄧ", "ㄅㄧˇ", "ㄖㄣˊ"],
                 lines: [
-                    { text: "北斗七星高", zhuyin: "ㄅㄟˇ ㄉㄡˇ ㄑㄧ ㄒㄧㄥ ㄍㄠ" },
-                    { text: "哥舒夜帶刀", zhuyin: "ㄍㄜ ㄕㄨ ㄧㄝˋ ㄉㄞˋ ㄉㄠ" },
-                    { text: "至今窺牧馬", zhuyin: "ㄓˋ ㄐㄧㄣ ㄎㄨㄟ ㄇㄨˋ ㄇㄚˇ" },
-                    { text: "不敢過臨洮", zhuyin: "ㄅㄨˋ ㄍㄢˇ ㄍㄨㄛˋ ㄌㄧㄣˊ ㄊㄠˊ" }
+                    { text: "北斗七星高，", zhuyin: "ㄅㄟˇ ㄉㄡˇ ㄑㄧ ㄒㄧㄥ ㄍㄠ " },
+                    { text: "哥舒夜帶刀。", zhuyin: "ㄍㄜ ㄕㄨ ㄧㄝˋ ㄉㄞˋ ㄉㄠ " },
+                    { text: "至今窺牧馬，", zhuyin: "ㄓˋ ㄐㄧㄣ ㄎㄨㄟ ㄇㄨˋ ㄇㄚˇ " },
+                    { text: "不敢過臨洮。", zhuyin: "ㄅㄨˋ ㄍㄢˇ ㄍㄨㄛˋ ㄌㄧㄣˊ ㄊㄠˊ " }
                 ]
             },
             {
                 title: "塞下曲", titleZhuyin: ["ㄙㄞˋ", "ㄒㄧㄚˋ", "ㄑㄩ"],
                 author: "盧綸", authorZhuyin: ["ㄌㄨˊ", "ㄌㄨㄣˊ"],
                 lines: [
-                    { text: "月黑雁飛高", zhuyin: "ㄩㄝˋ ㄏㄟ ㄧㄢˋ ㄈㄟ ㄍㄠ" },
-                    { text: "單于夜遁逃", zhuyin: "ㄔㄢˊ ㄩˊ ㄧㄝˋ ㄉㄨㄣˋ ㄊㄠˊ" },
-                    { text: "欲將輕騎逐", zhuyin: "ㄩˋ ㄐㄧㄤ ㄑㄧㄥ ㄐㄧˋ ㄓㄨˊ" },
-                    { text: "大雪滿弓刀", zhuyin: "ㄉㄚˋ ㄒㄩㄝˇ ㄇㄢˇ ㄍㄨㄥ ㄉㄠ" }
+                    { text: "月黑雁飛高，", zhuyin: "ㄩㄝˋ ㄏㄟ ㄧㄢˋ ㄈㄟ ㄍㄠ " },
+                    { text: "單于夜遁逃。", zhuyin: "ㄔㄢˊ ㄩˊ ㄧㄝˋ ㄉㄨㄣˋ ㄊㄠˊ " },
+                    { text: "欲將輕騎逐，", zhuyin: "ㄩˋ ㄐㄧㄤ ㄑㄧㄥ ㄐㄧˋ ㄓㄨˊ " },
+                    { text: "大雪滿弓刀。", zhuyin: "ㄉㄚˋ ㄒㄩㄝˇ ㄇㄢˇ ㄍㄨㄥ ㄉㄠ " }
                 ]
             },
             {
                 title: "秋夕", titleZhuyin: ["ㄑㄧㄡ", "ㄒㄧˋ"],
                 author: "杜牧", authorZhuyin: ["ㄉㄨˋ", "ㄇㄨˋ"],
                 lines: [
-                    { text: "銀燭秋光冷畫屏", zhuyin: "ㄧㄣˊ ㄓㄨˊ ㄑㄧㄡ ㄍㄨㄤ ㄌㄥˇ ㄏㄨㄚˋ ㄆㄧㄥˊ" },
-                    { text: "輕羅小扇撲流螢", zhuyin: "ㄑㄧㄥ ㄌㄨㄛˊ ㄒㄧㄠˇ ㄕㄢˋ ㄆㄨ ㄌㄧㄡˊ ㄧㄥˊ" },
-                    { text: "天階夜色涼如水", zhuyin: "ㄊㄧㄢ ㄐㄧㄝ ㄧㄝˋ ㄙㄜˋ ㄌㄧㄤˊ ㄖㄨˊ ㄕㄨㄟˇ" },
-                    { text: "臥看牽牛織女星", zhuyin: "ㄨㄛˋ ㄎㄢˋ ㄑㄧㄢ ㄋㄧㄡˊ ㄓ ㄋㄩˇ ㄒㄧㄥ" }
+                    { text: "銀燭秋光冷畫屏，", zhuyin: "ㄧㄣˊ ㄓㄨˊ ㄑㄧㄡ ㄍㄨㄤ ㄌㄥˇ ㄏㄨㄚˋ ㄆㄧㄥˊ " },
+                    { text: "輕羅小扇撲流螢。", zhuyin: "ㄑㄧㄥ ㄌㄨㄛˊ ㄒㄧㄠˇ ㄕㄢˋ ㄆㄨ ㄌㄧㄡˊ ㄧㄥˊ " },
+                    { text: "天階夜色涼如水，", zhuyin: "ㄊㄧㄢ ㄐㄧㄝ ㄧㄝˋ ㄙㄜˋ ㄌㄧㄤˊ ㄖㄨˊ ㄕㄨㄟˇ " },
+                    { text: "臥看牽牛織女星。", zhuyin: "ㄨㄛˋ ㄎㄢˋ ㄑㄧㄢ ㄋㄧㄡˊ ㄓ ㄋㄩˇ ㄒㄧㄥ " }
                 ]
             },
             {
                 title: "贈別", titleZhuyin: ["ㄗㄨㄥˋ", "ㄅㄧㄝˊ"],
                 author: "杜牧", authorZhuyin: ["ㄉㄨˋ", "ㄇㄨˋ"],
                 lines: [
-                    { text: "娉娉嫋嫋十三餘", zhuyin: "ㄆㄧㄥ ㄆㄧㄥ ㄋㄧㄠˇ ㄋㄧㄠˇ ㄕˊ ㄙㄢ ㄩˊ" },
-                    { text: "豆蔻梢頭二月初", zhuyin: "ㄉㄡˋ ㄎㄡˋ ㄕㄠ ㄊㄡˊ ㄦˋ ㄩㄝˋ ㄔㄨ" },
-                    { text: "春風十里揚州路", zhuyin: "ㄔㄨㄣ ㄈㄥ ㄕˊ ㄌㄧˇ ㄧㄤˊ ㄓㄡ ㄌㄨˋ" },
-                    { text: "卷上珠簾總不如", zhuyin: "ㄐㄨㄢˇ ㄕㄤˋ ㄓㄨ ㄌㄧㄢˊ ㄗㄨㄥˇ ㄅㄨˋ ㄖㄨˊ" }
+                    { text: "娉娉嫋嫋十三餘，", zhuyin: "ㄆㄧㄥ ㄆㄧㄥ ㄋㄧㄠˇ ㄋㄧㄠˇ ㄕˊ ㄙㄢ ㄩˊ " },
+                    { text: "豆蔻梢頭二月初。", zhuyin: "ㄉㄡˋ ㄎㄡˋ ㄕㄠ ㄊㄡˊ ㄦˋ ㄩㄝˋ ㄔㄨ " },
+                    { text: "春風十里揚州路，", zhuyin: "ㄔㄨㄣ ㄈㄥ ㄕˊ ㄌㄧˇ ㄧㄤˊ ㄓㄡ ㄌㄨˋ " },
+                    { text: "卷上珠簾總不如。", zhuyin: "ㄐㄨㄢˇ ㄕㄤˋ ㄓㄨ ㄌㄧㄢˊ ㄗㄨㄥˇ ㄅㄨˋ ㄖㄨˊ " }
                 ]
             },
             {
                 title: "金谷園", titleZhuyin: ["ㄐㄧㄣ", "ㄍㄨˇ", "ㄩㄢˊ"],
                 author: "杜牧", authorZhuyin: ["ㄉㄨˋ", "ㄇㄨˋ"],
                 lines: [
-                    { text: "繁華事散逐香塵", zhuyin: "ㄈㄢˊ ㄏㄨㄚˊ ㄕˋ ㄙㄢˋ ㄓㄨˊ ㄒㄧㄤ ㄔㄣˊ" },
-                    { text: "流水無情草自春", zhuyin: "ㄌㄧㄡˊ ㄕㄨㄟˇ ㄨˊ ㄑㄧㄥˊ ㄘㄠˇ ㄗˋ ㄔㄨㄣ" },
-                    { text: "日暮東風怨啼鳥", zhuyin: "ㄖˋ ㄇㄨˋ ㄉㄨㄥ ㄈㄥ ㄩㄢˋ ㄊㄧˊ ㄋㄧㄠˇ" },
-                    { text: "落花猶似墜樓人", zhuyin: "ㄌㄨㄛˋ ㄏㄨㄚ ㄧㄡˊ ㄕˋ ㄓㄨㄟˋ ㄌㄡˊ ㄖㄣˊ" }
+                    { text: "繁華事散逐香塵，", zhuyin: "ㄈㄢˊ ㄏㄨㄚˊ ㄕˋ ㄙㄢˋ ㄓㄨˊ ㄒㄧㄤ ㄔㄣˊ " },
+                    { text: "流水無情草自春。", zhuyin: "ㄌㄧㄡˊ ㄕㄨㄟˇ ㄨˊ ㄑㄧㄥˊ ㄘㄠˇ ㄗˋ ㄔㄨㄣ " },
+                    { text: "日暮東風怨啼鳥，", zhuyin: "ㄖˋ ㄇㄨˋ ㄉㄨㄥ ㄈㄥ ㄩㄢˋ ㄊㄧˊ ㄋㄧㄠˇ " },
+                    { text: "落花猶似墜樓人。", zhuyin: "ㄌㄨㄛˋ ㄏㄨㄚ ㄧㄡˊ ㄕˋ ㄓㄨㄟˋ ㄌㄡˊ ㄖㄣˊ " }
                 ]
             },
             {
                 title: "清明", titleZhuyin: ["ㄑㄧㄥ", "ㄇㄧㄥˊ"],
                 author: "杜牧", authorZhuyin: ["ㄉㄨˋ", "ㄇㄨˋ"],
                 lines: [
-                    { text: "清明時節雨紛紛", zhuyin: "ㄑㄧㄥ ㄇㄧㄥˊ ㄕˊ ㄐㄧㄝˊ ㄩˇ ㄈㄣ ㄈㄣ" },
-                    { text: "路上行人欲斷魂",_zhuyin: "ㄌㄨˋ ㄕㄤˋ ㄒㄧㄥˊ ㄖㄣˊ ㄩˋ ㄉㄨㄢˋ ㄏㄨㄣ" },
-                    { text: "借問酒家何處有", zhuyin: "ㄐㄧㄝˋ ㄨㄣˋ ㄐㄧㄡˇ ㄐㄧㄚ ㄏㄜˊ ㄔㄨˋ ㄧㄡˇ" },
-                    { text: "牧童遙指杏花村", zhuyin: "ㄇㄨˋ ㄊㄨㄥˊ ㄧㄠˊ ㄓˇ ㄒㄧㄥˋ ㄏㄨㄚ ㄘㄣˊ" }
+                    { text: "清明時節雨紛紛，", zhuyin: "ㄑㄧㄥ ㄇㄧㄥˊ ㄕˊ ㄐㄧㄝˊ ㄩˇ ㄈㄣ ㄈㄣ " },
+                    { text: "路上行人欲斷魂。", zhuyin: "ㄌㄨˋ ㄕㄤˋ ㄒㄧㄥˊ ㄖㄣˊ ㄩˋ ㄉㄨㄢˋ ㄏㄨㄣ " },
+                    { text: "借問酒家何處有？", zhuyin: "ㄐㄧㄝˋ ㄨㄣˋ ㄐㄧㄡˇ ㄐㄧㄚ ㄏㄜˊ ㄔㄨˋ ㄧㄡˇ " },
+                    { text: "牧童遙指杏花村。", zhuyin: "ㄇㄨˋ ㄊㄨㄥˊ ㄧㄠˊ ㄓˇ ㄒㄧㄥˋ ㄏㄨㄚ ㄘㄣˊ " }
                 ]
             },
             {
                 title: "山行", titleZhuyin: ["ㄕㄢ", "ㄒㄧㄥˊ"],
                 author: "杜牧", authorZhuyin: ["ㄉㄨˋ", "ㄇㄨˋ"],
                 lines: [
-                    { text: "遠上寒山石徑斜", zhuyin: "ㄩㄢˇ ㄕㄤˋ ㄏㄢˊ ㄕㄢ ㄕˊ ㄐㄧㄥˋ ㄒㄧㄝˊ" },
-                    { text: "白雲生處有人家", zhuyin: "ㄅㄞˊ ㄩㄣˊ ㄕㄥ ㄔㄨˋ ㄧㄡˇ ㄖㄣˊ ㄐㄧㄚ" },
-                    { text: "停車坐愛楓林晚", zhuyin: "ㄊㄧㄥˊ ㄔㄜ ㄗㄨㄛˋ ㄞˋ ㄈㄥ ㄌㄧㄣˊ ㄨㄢˇ" },
-                    { text: "霜葉紅於二月花", zhuyin: "ㄕㄨㄤ ㄧㄝˋ ㄏㄨㄥˊ ㄩˊ ㄦˋ ㄩㄝˋ ㄏㄨㄚ" }
+                    { text: "遠上寒山石徑斜，", zhuyin: "ㄩㄢˇ ㄕㄤˋ ㄏㄢˊ ㄕㄢ ㄕˊ ㄐㄧㄥˋ ㄒㄧㄝˊ " },
+                    { text: "白雲生處有人家。", zhuyin: "ㄅㄞˊ ㄩㄣˊ ㄕㄥ ㄔㄨˋ ㄧㄡˇ ㄖㄣˊ ㄐㄧㄚ " },
+                    { text: "停車坐愛楓林晚，", zhuyin: "ㄊㄧㄥˊ ㄔㄜ ㄗㄨㄛˋ ㄞˋ ㄈㄥ ㄌㄧㄣˊ ㄨㄢˇ " },
+                    { text: "霜葉紅於二月花。", zhuyin: "ㄕㄨㄤ ㄧㄝˋ ㄏㄨㄥˊ ㄩˊ ㄦˋ ㄩㄝˋ ㄏㄨㄚ " }
                 ]
             },
             {
                 title: "泊秦淮", titleZhuyin: ["ㄅㄛˊ", "ㄑㄧㄣˊ", "ㄏㄨㄞˊ"],
                 author: "杜牧", authorZhuyin: ["ㄉㄨˋ", "ㄇㄨˋ"],
                 lines: [
-                    { text: "煙籠寒水月籠沙", zhuyin: "ㄧㄢ ㄌㄨㄥˊ ㄏㄢˊ ㄕㄨㄟˇ ㄩㄝˋ ㄌㄨㄥˊ ㄕㄚ" },
-                    { text: "夜泊秦淮近酒家", zhuyin: "ㄧㄝˋ ㄅㄛˊ ㄑㄧㄣˊ ㄏㄨㄞˊ ㄐㄧㄣˋ ㄐㄧㄡˇ ㄐㄧㄚ" },
-                    { text: "商女不知亡國恨", zhuyin: "ㄕㄤ ㄋㄩˇ ㄅㄨˋ ㄓ ㄨㄤˊ ㄍㄨㄛˊ ㄏㄣˋ" },
-                    { text: "隔江猶唱後庭花", zhuyin: "ㄍㄜˊ ㄐㄧㄤ ㄧㄡˊ ㄔㄤˋ ㄏㄡˋ ㄊㄧㄥˊ ㄏㄨㄚ" }
+                    { text: "煙籠寒水月籠沙，", zhuyin: "ㄧㄢ ㄌㄨㄥˊ ㄏㄢˊ ㄕㄨㄟˇ ㄩㄝˋ ㄌㄨㄥˊ ㄕㄚ " },
+                    { text: "夜泊秦淮近酒家。", zhuyin: "ㄧㄝˋ ㄅㄛˊ ㄑㄧㄣˊ ㄏㄨㄞˊ ㄐㄧㄣˋ ㄐㄧㄡˇ ㄐㄧㄚ " },
+                    { text: "商女不知亡國恨，", zhuyin: "ㄕㄤ ㄋㄩˇ ㄅㄨˋ ㄓ ㄨㄤˊ ㄍㄨㄛˊ ㄏㄣˋ " },
+                    { text: "隔江猶唱後庭花。", zhuyin: "ㄍㄜˊ ㄐㄧㄤ ㄧㄡˊ ㄔㄤˋ ㄏㄡˋ ㄊㄧㄥˊ ㄏㄨㄚ " }
                 ]
             },
             {
                 title: "夜雨寄北", titleZhuyin: ["ㄧㄝˋ", "ㄩˇ", "ㄐㄧˋ", "ㄅㄟˇ"],
                 author: "李商隱", authorZhuyin: ["ㄌㄧˇ", "ㄕㄤ", "ㄧㄣˇ"],
                 lines: [
-                    { text: "君問歸期未有期", zhuyin: "ㄐㄩㄣ ㄨㄣˋ ㄍㄨㄟ ㄑㄧˊ ㄨㄟˋ ㄧㄡˇ ㄑㄧˊ" },
-                    { text: "巴山夜雨漲秋池", zhuyin: "ㄅㄚ ㄕㄢ ㄧㄝˋ ㄩˇ ㄓㄤˇ ㄑㄧㄡ ㄔˊ" },
-                    { text: "何當共剪西窗燭", zhuyin: "ㄏㄜˊ ㄉㄤ ㄍㄨㄥˋ ㄐㄧㄢˇ ㄒㄧ ㄔㄨㄤ ㄓㄨˊ" },
-                    { text: "卻話巴山夜雨時", zhuyin: "ㄑㄩㄝˋ ㄏㄨㄚˋ ㄅㄚ ㄕㄢ ㄧㄝˋ ㄩˇ ㄕˊ" }
+                    { text: "君問歸期未有期，", zhuyin: "ㄐㄩㄣ ㄨㄣˋ ㄍㄨㄟ ㄑㄧˊ ㄨㄟˋ ㄧㄡˇ ㄑㄧˊ " },
+                    { text: "巴山夜雨漲秋池。", zhuyin: "ㄅㄚ ㄕㄢ ㄧㄝˋ ㄩˇ ㄓㄤˇ ㄑㄧㄡ ㄔˊ " },
+                    { text: "何當共剪西窗燭，", zhuyin: "ㄏㄜˊ ㄉㄤ ㄍㄨㄥˋ ㄐㄧㄢˇ ㄒㄧ ㄔㄨㄤ ㄓㄨˊ " },
+                    { text: "卻話巴山夜雨時。", zhuyin: "ㄑㄩㄝˋ ㄏㄨㄚˋ ㄅㄚ ㄕㄢ ㄧㄝˋ ㄩˇ ㄕˊ " }
                 ]
             },
             {
                 title: "寄令狐郎中", titleZhuyin: ["ㄐㄧˋ", "ㄌㄧㄥˊ", "ㄏㄨˊ", "ㄌㄨㄣˊ", "ㄓㄨㄥ"],
                 author: "李商隱", authorZhuyin: ["ㄌㄧˇ", "ㄕㄤ", "ㄧㄣˇ"],
                 lines: [
-                    { text: "嵩雲秦樹久離居", zhuyin: "ㄙㄨㄥ ㄩㄣˊ ㄑㄧㄣˊ ㄕㄨˋ ㄐㄧㄡˇ ㄌㄧˊ ㄐㄩ" },
-                    { text: "雙領寬博望未舒", zhuyin: "ㄕㄨㄤ ㄌㄧㄥˇ ㄎㄨㄢ ㄅㄛˊ ㄨㄤˋ ㄨㄟˋ ㄕㄨ" },
-                    { text: "欲問東來雙鯉魚", zhuyin: "ㄩˋ ㄨㄣˋ ㄉㄨㄥ ㄌㄞˊ ㄕㄨㄤ ㄌㄧˇ ㄩˊ" },
-                    { text: "一封家書到何時", zhuyin: "ㄧˋ ㄈㄥ ㄐㄧㄚ ㄕㄨ ㄉㄠˋ ㄏㄜˊ ㄕˊ" }
+                    { text: "嵩雲秦樹久離居，", zhuyin: "ㄙㄨㄥ ㄩㄣˊ ㄑㄧㄣˊ ㄕㄨˋ ㄐㄧㄡˇ ㄌㄧˊ ㄐㄩ " },
+                    { text: "雙領寬博望未舒。", zhuyin: "ㄕㄨㄤ ㄌㄧㄥˇ ㄎㄨㄢ ㄅㄛˊ ㄨㄤˋ ㄨㄟˋ ㄕㄨ " },
+                    { text: "欲問東來雙鯉魚，", zhuyin: "ㄩˋ ㄨㄣˋ ㄉㄨㄥ ㄌㄞˊ ㄕㄨㄤ ㄌㄧˇ ㄩˊ " },
+                    { text: "一封家書到何時？", zhuyin: "ㄧˋ ㄈㄥ ㄐㄧㄚ ㄕㄨ ㄉㄠˋ ㄏㄜˊ ㄕˊ " }
                 ]
             },
             {
                 title: "為有", titleZhuyin: ["ㄨㄟˊ", "ㄧㄡˇ"],
                 author: "李商隱", authorZhuyin: ["ㄌㄧˇ", "ㄕㄤ", "ㄧㄣˇ"],
                 lines: [
-                    { text: "為有雲屏無限嬌", zhuyin: "ㄨㄟˊ ㄧㄡˇ ㄩㄣˊ ㄆㄧㄥˊ ㄨˊ ㄒㄧㄢˋ ㄐㄧㄠ" },
-                    { text: "鳳城寒盡怕春宵", zhuyin: "ㄈㄥˋ ㄔㄥˊ ㄏㄢˊ ㄐㄧㄣˋ ㄆㄚˋ ㄔㄨㄣ ㄒㄧㄠ" },
-                    { text: "無端嫁得金龜婿", zhuyin: "ㄨˊ ㄉㄨㄢ ㄐㄧㄚˋ ㄉㄜˊ ㄐㄧㄣ ㄍㄨㄟ ㄒㄩˋ" },
-                    { text: "辜負香衾事早朝", zhuyin: "ㄍㄨ ㄈㄨˋ ㄒㄧㄤ ㄑㄧㄣ ㄕˋ ㄗㄠˇ ㄔㄠˊ" }
+                    { text: "為有雲屏無限嬌，", zhuyin: "ㄨㄟˊ ㄧㄡˇ ㄩㄣˊ ㄆㄧㄥˊ ㄨˊ ㄒㄧㄢˋ ㄐㄧㄠ " },
+                    { text: "鳳城寒盡怕春宵。", zhuyin: "ㄈㄥˋ ㄔㄥˊ ㄏㄢˊ ㄐㄧㄣˋ ㄆㄚˋ ㄔㄨㄣ ㄒㄧㄠ " },
+                    { text: "無端嫁得金龜婿，", zhuyin: "ㄨˊ ㄉㄨㄢ ㄐㄧㄚˋ ㄉㄜˊ ㄐㄧㄣ ㄍㄨㄟ ㄒㄩˋ " },
+                    { text: "辜負香衾事早朝。", zhuyin: "ㄍㄨ ㄈㄨˋ ㄒㄧㄤ ㄑㄧㄣ ㄕˋ ㄗㄠˇ ㄔㄠˊ " }
                 ]
             },
             {
                 title: "金縷衣", titleZhuyin: ["ㄐㄧㄣ", "ㄌㄩˇ", "ㄧ"],
                 author: "杜秋娘", authorZhuyin: ["ㄉㄨˋ", "ㄑㄧㄡ", "ㄋㄧㄤˊ"],
                 lines: [
-                    { text: "勸君莫惜金縷衣", zhuyin: "ㄑㄩㄢˋ ㄐㄩㄣ ㄇㄛˋ ㄒㄧˊ ㄐㄧㄣ ㄌㄩˇ ㄧ" },
-                    { text: "勸君惜取少年時", zhuyin: "ㄑㄩㄢˋ ㄐㄩㄣ ㄒㄧˊ ㄑㄩˇ ㄕㄠˇ ㄋㄧㄢˊ ㄕˊ" },
-                    { text: "花開堪折直須折", zhuyin: "ㄏㄨㄚ ㄎㄞ ㄎㄢ ㄓㄜˊ ㄓˊ ㄒㄩ ㄓㄜˊ" },
-                    { text: "莫待無花空折枝", zhuyin: "ㄇㄛˋ ㄉㄞˋ ㄨˊ ㄏㄨㄚ ㄎㄨㄥ ㄓㄜˊ ㄓ" }
+                    { text: "勸君莫惜金縷衣，", zhuyin: "ㄑㄩㄢˋ ㄐㄩㄣ ㄇㄛˋ ㄒㄧˊ ㄐㄧㄣ ㄌㄩˇ ㄧ " },
+                    { text: "勸君惜取少年時。", zhuyin: "ㄑㄩㄢˋ ㄐㄩㄣ ㄒㄧˊ ㄑㄩˇ ㄕㄠˇ ㄋㄧㄢˊ ㄕˊ " },
+                    { text: "花開堪折直須折，", zhuyin: "ㄏㄨㄚ ㄎㄞ ㄎㄢ ㄓㄜˊ ㄓˊ ㄒㄩ ㄓㄜˊ " },
+                    { text: "莫待無花空折枝。", zhuyin: "ㄇㄛˋ ㄉㄞˋ ㄨˊ ㄏㄨㄚ ㄎㄨㄥ ㄓㄜˊ ㄓ " }
                 ]
             },
             {
                 title: "隴西行", titleZhuyin: ["ㄌㄨㄥˇ", "ㄒㄧ", "ㄒㄧㄥˊ"],
                 author: "陳陶", authorZhuyin: ["ㄔㄣˊ", "ㄊㄠˊ"],
                 lines: [
-                    { text: "誓掃匈奴不顧身", zhuyin: "ㄕˋ ㄙㄠˇ ㄒㄩㄥ ㄋㄨˊ ㄅㄨˊ ㄍㄨˋ ㄕㄣ" },
-                    { text: "五千貂錦喪胡塵", zhuyin: "ㄨˇ ㄑㄧㄢ ㄉㄧㄠ ㄐㄧㄣˇ ㄙㄤˋ ㄏㄨˊ ㄔㄣˊ" },
-                    { text: "可憐無定河邊骨", zhuyin: "ㄎㄜˇ ㄌㄧㄢˊ ㄨˊ ㄉㄧㄥˋ ㄏㄜˊ ㄅㄧㄢ ㄍㄨˇ" },
-                    { text: "猶是春閨夢裡人", zhuyin: "ㄧㄡˊ ㄕˋ ㄔㄨㄣ ㄍㄨㄟ ㄇㄥˋ ㄌㄧˇ ㄖㄣˊ" }
+                    { text: "誓掃匈奴不顧身，", zhuyin: "ㄕˋ ㄙㄠˇ ㄒㄩㄥ ㄋㄨˊ ㄅㄨˊ ㄍㄨˋ ㄕㄣ " },
+                    { text: "五千貂錦喪胡塵。", zhuyin: "ㄨˇ ㄑㄧㄢ ㄉㄧㄠ ㄐㄧㄣˇ ㄙㄤˋ ㄏㄨˊ ㄔㄣˊ " },
+                    { text: "可憐無定河邊骨，", zhuyin: "ㄎㄜˇ ㄌㄧㄢˊ ㄨˊ ㄉㄧㄥˋ ㄏㄜˊ ㄅㄧㄢ ㄍㄨˇ " },
+                    { text: "猶是春閨夢裡人。", zhuyin: "ㄧㄡˊ ㄕˋ ㄔㄨㄣ ㄍㄨㄟ ㄇㄥˋ ㄌㄧˇ ㄖㄣˊ " }
                 ]
             }
         ];
@@ -979,11 +969,12 @@
         let state = {
             currentPoemIdx: 0,
             currentLineIdx: 0,
+            currentCharIdx: 0, // 用於記錄目前打到第幾個字，好讓提示燈知道要亮哪裡
             wrongChars: [], // 記錄當前行打錯的字元索引
             totalScore: 0,
             completedPoems: {}, 
-            poemStartTime: null, // 新增：整首詩開始計時的時間
-            isWaitingToStart: false, // 新增：等待按下 Enter 開始的狀態
+            poemStartTime: null, // 整首詩開始計時的時間
+            isWaitingToStart: false, // 等待按下 Enter 開始的狀態
             lineStartTime: null,
             totalTypedCount: 0,
             errorCount: 0,
@@ -1012,6 +1003,23 @@
                     }
                 }
             });
+
+            // 監聽打字狀態，動態移動鍵盤亮燈提示
+            let isComposing = false;
+            // 當開始注音拼字時
+            inputField.addEventListener('compositionstart', () => { 
+                isComposing = true; 
+            });
+            // 當選好字、結束注音拼字時
+            inputField.addEventListener('compositionend', (e) => {
+                isComposing = false;
+                updateHintByInput(e.target.value);
+            });
+            // 針對一般的輸入或刪除 (例如倒退鍵)
+            inputField.addEventListener('input', (e) => {
+                if (isComposing) return; // 若正在注音拼音中，則保持原處不換燈
+                updateHintByInput(e.target.value);
+            });
             
             document.querySelector('#target-sentence').addEventListener('click', () => {
                 inputField.focus();
@@ -1020,6 +1028,24 @@
             window.addEventListener('keydown', handleGlobalKeyDown);
             window.addEventListener('keyup', handleGlobalKeyUp);
         };
+
+        // 根據目前輸入框的字數，更新提示燈的位置
+        function updateHintByInput(val) {
+            if (state.isWaitingToStart) return;
+            const typedLength = val.length;
+            const poem = POEMS_DATABASE[state.currentPoemIdx];
+            const activeLine = poem.lines[state.currentLineIdx];
+
+            if (typedLength < activeLine.text.length) {
+                state.currentCharIdx = typedLength;
+                updateKeyboardGuide();
+            } else {
+                // 如果已經打滿這句的字數，就把鍵盤提示全關掉
+                document.querySelectorAll('#virtual-keyboard [data-key]').forEach(keyElem => {
+                    keyElem.classList.remove('key-target');
+                });
+            }
+        }
 
         function loadProgress() {
             const saved = localStorage.getItem('zhuyin_typer_progress');
@@ -1143,6 +1169,7 @@
             document.getElementById('current-author').innerHTML = `〔${authorHTML}〕`;
 
             state.currentLineIdx = 0;
+            state.currentCharIdx = 0; // 重置目前打到的字元索引
             state.wrongChars = [];
             state.totalTypedCount = 0;
             state.errorCount = 0;
@@ -1150,7 +1177,7 @@
             state.poemStartTime = null; // 重置整首計時
             state.isWaitingToStart = true; // 設為等待開始狀態
             
-            // 新增：切換題目時，將底部狀態列顯示歸零
+            // 切換題目時，將底部狀態列顯示歸零
             document.getElementById('stat-accuracy').innerText = '100%';
             document.getElementById('stat-speed').innerText = '0';
             document.getElementById('stat-score').innerText = '0';
@@ -1158,10 +1185,13 @@
             renderWaitingScreen();
         }
 
-        // 新增：渲染等待開始畫面
+        // 渲染等待開始畫面
         function renderWaitingScreen() {
             const container = document.getElementById('target-sentence');
-            container.innerHTML = `<div class="text-3xl md:text-4xl font-black text-blue-600 animate-pulse py-8">👉 按 Enter 鍵後開始計時 👈</div>`;
+            container.classList.remove('justify-start');
+            container.classList.add('justify-center');
+            container.style.paddingLeft = '0';
+            container.innerHTML = `<div class="text-3xl md:text-4xl font-black text-blue-600 animate-pulse py-8 w-full text-center">👉 按 Enter 鍵後開始計時 👈</div>`;
             
             const indicators = document.getElementById('line-indicators');
             indicators.innerHTML = '';
@@ -1179,9 +1209,14 @@
             inputField.focus();
 
             updateMascot("idle");
+            
+            // 熄滅所有鍵盤提示
+            document.querySelectorAll('#virtual-keyboard [data-key]').forEach(keyElem => {
+                keyElem.classList.remove('key-target');
+            });
         }
 
-        // 新增：正式開始練習與計時
+        // 正式開始練習與計時
         function startPoem() {
             state.isWaitingToStart = false;
             state.poemStartTime = new Date(); // 此刻才開始算整首詩的時間
@@ -1207,6 +1242,7 @@
 
         function loadLine(lineIdx) {
             state.currentLineIdx = lineIdx;
+            state.currentCharIdx = 0; // 重置目前打到的字元索引
             state.wrongChars = [];
             state.lineStartTime = new Date();
             
@@ -1217,12 +1253,17 @@
             const inputField = document.getElementById('typing-input');
             inputField.disabled = false; // 確保新的一行開始時解鎖輸入框
             inputField.value = "";
-            inputField.placeholder = "輸入整句後按 Enter 送出...";
+            inputField.placeholder = "點擊開始打字...";
             inputField.focus();
+
+            updateKeyboardGuide(); // 亮起第一個字的提示燈
         }
 
         function renderSentence() {
             const container = document.getElementById('target-sentence');
+            container.classList.remove('justify-center');
+            container.classList.add('justify-start');
+            container.style.paddingLeft = 'calc(0.25em + 4px)';
             container.innerHTML = '';
             
             const poem = POEMS_DATABASE[state.currentPoemIdx];
@@ -1233,7 +1274,7 @@
 
             chars.forEach((char, i) => {
                 const wrapper = document.createElement('div');
-                wrapper.className = "flex flex-col items-center select-none transition-all duration-300";
+                wrapper.className = "flex flex-col items-center justify-end select-none transition-all duration-300 w-[1em] shrink-0";
                 
                 let textColor = "text-gray-700";
                 let rtColor = "color: #ea580c;"; 
@@ -1245,12 +1286,18 @@
                     wrapper.classList.add("border-b-4", "border-red-500", "pb-1");
                 }
                 
-                wrapper.innerHTML = `
-                    <ruby class="${textColor}" style="transition: all 0.2s;">
-                        ${char}
-                        <rt style="${rtColor}">${zhuyins[i]}</rt>
-                    </ruby>
-                `;
+                const isPunc = /[，。！？]/.test(char);
+
+                if (isPunc) {
+                    wrapper.innerHTML = `<span class="${textColor} block leading-none" style="transition: all 0.2s;">${char}</span>`;
+                } else {
+                    wrapper.innerHTML = `
+                        <ruby class="${textColor} leading-none" style="transition: all 0.2s;">
+                            ${char}
+                            <rt style="${rtColor}">${zhuyins[i]}</rt>
+                        </ruby>
+                    `;
+                }
                 container.appendChild(wrapper);
             });
         }
@@ -1346,15 +1393,22 @@
             Sound.levelUp();
             updateMascot("celebrate");
             
-            // --- 新增：畫面替換為完成提示，並鎖定輸入框 ---
+            // 畫面替換為完成提示，並鎖定輸入框
             const container = document.getElementById('target-sentence');
-            container.innerHTML = `<div class="text-4xl md:text-5xl font-black text-green-600 animate-bounce py-6">🎉 恭喜完成整首詩！ 🎉</div>`;
+            container.classList.remove('justify-start');
+            container.classList.add('justify-center');
+            container.style.paddingLeft = '0';
+            container.innerHTML = `<div class="text-4xl md:text-5xl font-black text-green-600 animate-bounce py-6 w-full text-center">🎉 恭喜完成整首詩！ 🎉</div>`;
             
             const inputField = document.getElementById('typing-input');
             inputField.value = "";
             inputField.disabled = true; // 鎖定輸入框避免誤打
             inputField.placeholder = "太棒了！準備觀看成績...";
-            // --------------------------------------------
+            
+            // 熄滅最後殘留的鍵盤提示燈
+            document.querySelectorAll('#virtual-keyboard [data-key]').forEach(keyElem => {
+                keyElem.classList.remove('key-target');
+            });
 
             const poem = POEMS_DATABASE[state.currentPoemIdx];
             const totalChars = poem.lines.reduce((sum, line) => sum + line.text.length, 0);
@@ -1503,7 +1557,7 @@
             }
         }
 
-        // 新增全螢幕切換功能
+        // 全螢幕切換功能
         function toggleFullScreen() {
             if (!document.fullscreenElement) {
                 document.documentElement.requestFullscreen().catch((err) => {
