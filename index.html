@@ -1,0 +1,1520 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>榮富國小 唐詩注音輸入小達人 - 國小三年級注音練習平台</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Noto+Serif+TC:wght@600;900&display=swap');
+        
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f0f9ff;
+            background-image: radial-gradient(#e0f2fe 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+
+        .poem-font {
+            font-family: 'Noto Serif TC', serif;
+        }
+
+        /* 讓注音符號比預設的 ruby 更大、更好看 */
+        ruby {
+            ruby-position: over;
+            ruby-align: center;
+        }
+        
+        rt {
+            font-family: 'Noto Sans TC', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #ea580c; /* 溫暖的橘色注音 */
+            letter-spacing: 0.05em;
+            padding-bottom: 0.25rem;
+            user-select: none;
+        }
+
+        /* 虛擬鍵盤特殊顏色分類 */
+        .key-consonant { background-color: #fee2e2; border-color: #fca5a5; color: #991b1b; } /* 聲母：粉紅 */
+        .key-medial { background-color: #fef9c3; border-color: #fde047; color: #854d0e; }    /* 介母：粉黃 */
+        .key-vowel { background-color: #dcfce7; border-color: #86efac; color: #166534; }     /* 韻母：粉綠 */
+        .key-tone { background-color: #f3e8ff; border-color: #d8b4fe; color: #6b21a8; }      /* 聲調：粉紫 */
+        .key-control { background-color: #e2e8f0; border-color: #cbd5e1; color: #475569; }   /* 控制鍵：灰色 */
+        
+        /* 動態高亮閃爍效果 */
+        @keyframes key-glow {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 0 0px rgba(59, 130, 246, 0.7); }
+            50% { transform: scale(1.05); box-shadow: 0 0 15px 5px rgba(59, 130, 246, 0.7); border-color: #3b82f6; }
+        }
+        .key-target {
+            animation: key-glow 1.2s infinite;
+            background-color: #3b82f6 !important;
+            color: white !important;
+            font-weight: 900;
+        }
+
+        /* Mascot 抖動與彈跳動畫 */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-4px); }
+            75% { transform: translateX(4px); }
+        }
+        .animate-shake {
+            animation: shake 0.2s ease-in-out infinite;
+        }
+        @keyframes bounce-short {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        .animate-bounce-short {
+            animation: bounce-short 1s ease-in-out infinite;
+        }
+
+        /* 自訂滾動條 */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col overflow-x-hidden">
+
+    <!-- 頂部導覽列 -->
+    <header class="bg-white border-b-4 border-yellow-300 shadow-sm sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+                <span class="text-4xl">🎒</span>
+                <div>
+                    <h1 class="text-2xl font-black text-blue-600 tracking-wider flex items-center gap-2">
+                        榮富國小 唐詩注音打字小達人
+                        <span class="text-xs bg-yellow-400 text-yellow-900 px-2 py-0.5 rounded-full font-bold">三年級專用版</span>
+                    </h1>
+                    <p class="text-xs text-gray-500 font-bold">用注音輸入法練習打唐詩！</p>
+                </div>
+            </div>
+            
+            <!-- 計分與等級資訊 -->
+            <div class="flex items-center gap-4">
+                <div class="bg-orange-100 border-2 border-orange-300 px-3 py-1.5 rounded-xl text-center">
+                    <div class="text-xs text-orange-600 font-black">🌟 累計得分</div>
+                    <div id="total-score" class="text-lg font-black text-orange-700">0</div>
+                </div>
+                <div class="bg-green-100 border-2 border-green-300 px-3 py-1.5 rounded-xl text-center">
+                    <div class="text-xs text-green-600 font-black">🏆 我的稱號</div>
+                    <div id="user-title" class="text-sm font-black text-green-700">注音小新手</div>
+                </div>
+                <div class="bg-blue-100 border-2 border-blue-300 px-3 py-1.5 rounded-xl text-center">
+                    <div class="text-xs text-blue-600 font-black">📊 已完成詩篇</div>
+                    <div id="completed-count" class="text-lg font-black text-blue-700">0 / 50</div>
+                </div>
+                <!-- 功能按鈕 -->
+                <button onclick="toggleFullScreen()" class="bg-gray-100 hover:bg-gray-200 p-2.5 rounded-xl transition duration-200 border-2 border-gray-300" title="全螢幕">
+                    ⛶
+                </button>
+                <button onclick="toggleSettingsModal()" class="bg-gray-100 hover:bg-gray-200 p-2.5 rounded-xl transition duration-200 border-2 border-gray-300" title="設定">
+                    ⚙️
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- 主要內容區 -->
+    <div class="flex-grow max-w-7xl w-full mx-auto p-4 flex flex-col lg:flex-row gap-6">
+        
+        <!-- 左側：唐詩選單 (50首) -->
+        <aside class="w-full lg:w-80 flex flex-col bg-white border-4 border-blue-200 rounded-3xl p-4 shadow-md max-h-[calc(100vh-140px)] min-h-[350px]">
+            <div class="mb-3">
+                <h2 class="text-lg font-black text-gray-800 flex items-center justify-between">
+                    <span>📜 唐詩百寶箱 (50首)</span>
+                    <span class="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded-lg" id="sidebar-progress">0%</span>
+                </h2>
+                <!-- 搜尋與篩選 -->
+                <div class="mt-2 flex gap-1">
+                    <input type="text" id="poem-search" placeholder="搜尋詩名或作者..." oninput="filterPoems()" class="w-full border-2 border-gray-200 px-3 py-1.5 rounded-xl text-sm focus:outline-none focus:border-blue-400">
+                </div>
+            </div>
+            
+            <!-- 詩清單列表 -->
+            <div id="poem-list" class="flex-grow overflow-y-auto space-y-2 pr-1">
+                <!-- 由 JS 動態生成 50 首詩 -->
+            </div>
+        </aside>
+
+        <!-- 右側：主要練習面板 -->
+        <main class="flex-grow flex flex-col gap-5">
+            
+            <!-- 頂部控制列 -->
+            <div class="bg-white border-4 border-yellow-200 rounded-3xl p-4 shadow-md flex flex-wrap items-center justify-between gap-4">
+                <div class="flex items-center gap-2">
+                    <span class="text-sm font-black text-blue-700">🎯 打字練習中：請切換到您電腦的「中文注音輸入法」打出正確國字。</span>
+                </div>
+
+                <!-- 語音朗讀與提示 -->
+                <div class="flex items-center gap-2">
+                    <button onclick="speakCurrentPoem()" class="bg-pink-100 hover:bg-pink-200 text-pink-700 border-2 border-pink-300 px-4 py-2 rounded-2xl text-sm font-black flex items-center gap-1 transition">
+                        🔊 聽老師讀這首詩
+                    </button>
+                    <button onclick="resetCurrentPoem()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 border-2 border-gray-300 px-4 py-2 rounded-2xl text-sm font-black transition">
+                        🔄 重來一次
+                    </button>
+                </div>
+            </div>
+
+            <!-- 唐詩練習卡片 -->
+            <div class="bg-white border-4 border-blue-400 rounded-3xl p-6 shadow-md flex-grow flex flex-col justify-between relative overflow-hidden">
+                <!-- 水印背景 -->
+                <div class="absolute right-4 bottom-4 opacity-5 pointer-events-none text-9xl">📖</div>
+
+                <!-- 詩詞標題與作者 -->
+                <div class="text-center mb-6">
+                    <h2 id="current-title" class="text-3xl md:text-4xl font-extrabold text-blue-900 poem-font inline-flex gap-4">
+                        <!-- 標題帶注音 -->
+                    </h2>
+                    <p id="current-author" class="text-lg text-gray-500 font-bold mt-2">
+                        <!-- 作者帶注音 -->
+                    </p>
+                </div>
+
+                <!-- 一次打一行：主挑戰畫面 -->
+                <div class="my-auto flex flex-col items-center justify-center py-4">
+                    <!-- 進度指示器 (呈現當前是第幾行) -->
+                    <div id="line-indicators" class="flex gap-2 mb-6">
+                        <!-- 動態點點 -->
+                    </div>
+
+                    <!-- 題目行顯示區 (極度放大，方便閱讀) -->
+                    <div id="target-sentence" class="flex flex-wrap justify-center gap-x-8 gap-y-12 text-4xl md:text-5xl font-black text-gray-700 leading-relaxed mb-8">
+                        <!-- 每個字帶大注音，由 JS 生成 -->
+                    </div>
+
+                    <!-- 鍵盤敲擊狀態與 mascot 區 -->
+                    <div class="flex items-center gap-6 w-full max-w-lg bg-yellow-50 border-4 border-yellow-200 rounded-2xl p-4">
+                        <!-- Mascot 動態精靈 -->
+                        <div id="mascot" class="w-16 h-16 flex-shrink-0 relative transition-transform duration-200">
+                            <!-- CSS 繪製的可愛小精靈 -->
+                            <div class="w-16 h-16 bg-blue-400 rounded-full border-4 border-blue-600 flex items-center justify-center shadow-md relative">
+                                <div class="absolute top-1 left-2 w-3 h-3 bg-white rounded-full flex items-center justify-center">
+                                    <div class="w-1.5 h-1.5 bg-black rounded-full"></div>
+                                </div>
+                                <div class="absolute top-1 right-2 w-3 h-3 bg-white rounded-full flex items-center justify-center">
+                                    <div class="w-1.5 h-1.5 bg-black rounded-full"></div>
+                                </div>
+                                <div class="absolute bottom-3 w-4 h-2 bg-red-400 rounded-b-full"></div>
+                                <div class="absolute -top-3 left-6 text-xl">✨</div>
+                            </div>
+                        </div>
+                        
+                        <!-- 輸入指引 -->
+                        <div class="flex-grow">
+                            <div class="text-xs text-gray-400 font-bold">請在這裡輸入：</div>
+                            <!-- 輸入框 -->
+                            <div class="relative mt-1">
+                                <input type="text" id="typing-input" autocomplete="off" placeholder="點擊這裡開始打字..." class="w-full border-3 border-blue-300 px-4 py-2 rounded-xl text-xl font-bold focus:outline-none focus:border-blue-500 bg-white shadow-sm placeholder-gray-300">
+                                <div id="input-helper" class="text-xs text-blue-500 font-bold mt-1">
+                                    提示：請輸入整句唐詩，完成後按 Enter (確認鍵) 送出檢查！
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 底部：練習數據即時顯示 -->
+                <div class="border-t-2 border-gray-100 pt-4 flex justify-around text-center text-sm">
+                    <div>
+                        <span class="text-gray-400 font-bold block">正確率</span>
+                        <span id="stat-accuracy" class="text-lg font-black text-green-600">100%</span>
+                    </div>
+                    <div>
+                        <span class="text-gray-400 font-bold block">打字速度 (字/分)</span>
+                        <span id="stat-speed" class="text-lg font-black text-blue-600">0</span>
+                    </div>
+                    <div>
+                        <span class="text-gray-400 font-bold block">本首得分</span>
+                        <span id="stat-score" class="text-lg font-black text-orange-600">0</span>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- 注音/英數對照虛擬鍵盤 (輔助學習位置) -->
+            <div class="bg-white border-4 border-purple-200 rounded-3xl p-4 shadow-md">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-sm font-black text-purple-700 flex items-center gap-1">
+                        ⌨️ 注音鍵盤位置參考
+                    </span>
+                    <label class="inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="toggle-keyboard" checked class="sr-only peer" onchange="toggleKeyboardVisibility()">
+                        <div class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+                        <span class="ms-2 text-xs font-bold text-gray-500">顯示鍵盤</span>
+                    </label>
+                </div>
+                
+                <!-- 虛擬鍵盤本體 (改為真實鍵盤的階梯平行四邊形排列) -->
+                <div id="virtual-keyboard" class="select-none overflow-x-auto pb-2 text-xs">
+                    <div class="w-full flex justify-center">
+                        <div class="space-y-1.5 min-w-max">
+                            <!-- 第一排：數字 & 聲母/聲調 (基準，不偏移) -->
+                            <div class="flex justify-start gap-1">
+                                <div class="w-10 h-10 border-2 rounded-lg flex flex-col items-center justify-center font-bold key-consonant" data-key="1"><span>ㄅ</span><span class="text-[9px] text-gray-400">1</span></div>
+                                <div class="w-10 h-10 border-2 rounded-lg flex flex-col items-center justify-center font-bold key-consonant" data-key="2"><span>ㄉ</span><span class="text-[9px] text-gray-400">2</span></div>
+                                <div class="w-10 h-10 border-2 rounded-lg flex flex-col items-center justify-center font-bold key-tone" data-key="3"><span>ˇ</span><span class="text-[9px] text-gray-400">3</span></div>
+                                <div class="w-10 h-10 border-2 rounded-lg flex flex-col items-center justify-center font-bold key-tone" data-key="4"><span>ˋ</span><span class="text-[9px] text-gray-400">4</span></div>
+                                <div class="w-10 h-10 border-2 rounded-lg flex flex-col items-center justify-center font-bold key-consonant" data-key="5"><span>ㄓ</span><span class="text-[9px] text-gray-400">5</span></div>
+                                <div class="w-10 h-10 border-2 rounded-lg flex flex-col items-center justify-center font-bold key-tone" data-key="6"><span>ˊ</span><span class="text-[9px] text-gray-400">6</span></div>
+                                <div class="w-10 h-10 border-2 rounded-lg flex flex-col items-center justify-center font-bold key-tone" data-key="7"><span>˙</span><span class="text-[9px] text-gray-400">7</span></div>
+                                <div class="w-10 h-10 border-2 rounded-lg flex flex-col items-center justify-center font-bold key-vowel" data-key="8"><span>ㄚ</span><span class="text-[9px] text-gray-400">8</span></div>
+                                <div class="w-10 h-10 border-2 rounded-lg flex flex-col items-center justify-center font-bold key-vowel" data-key="9"><span>ㄞ</span><span class="text-[9px] text-gray-400">9</span></div>
+                                <div class="w-10 h-10 border-2 rounded-lg flex flex-col items-center justify-center font-bold key-vowel" data-key="0"><span>ㄢ</span><span class="text-[9px] text-gray-400">0</span></div>
+                                <div class="w-10 h-10 border-2 rounded-lg flex flex-col items-center justify-center font-bold key-vowel" data-key="-"><span>ㄦ</span><span class="text-[9px] text-gray-400">-</span></div>
+                            </div>
+                            <!-- 第二排 (QWERTY... 向右偏移約半格) -->
+                            <div class="flex justify-start gap-1 ml-[22px]">
+                                <div class="w-10 h-10 border-2 rounded-lg flex flex-col items-center justify-center font-bold key-consonant" data-key="q"><span>ㄆ</span><span class="text-[9px] text-gray-400">Q</span></div>
+                                <div class="w-10 h-10 border-2 rounded-lg flex flex-col items-center justify-center font-bold key-consonant" data-key="w"><span>ㄊ</span><span class="text-[9px] text-gray-400">W</span></div>
+                                <div class="w-10 h-10 border-2 rounded-lg flex flex-col items-center justify-center font-bold key-consonant" data-key="e"><span>ㄍ</span><span class="text-[9px] text-gray-400">E</span></div>
+                                <div class="w-10 h-10 border-2 rounded-lg flex flex-col items-center justify-center font-bold key-consonant" data-key="r"><span>ㄐ</span><span class="text-[9px] text-gray-400">R</span></div>
+                                <div class="w-10 h-10 border-2 rounded-lg flex flex-col items-center justify-center font-bold key-consonant" data-key="t"><span>ㄔ</span><span class="text-[9px] text-gray-400">T</span></div>
+                                <div class="w-10 h-10 border-2 rounded-lg flex flex-col items-center justify-center font-bold key-consonant" data-key="y"><span>ㄗ</span><span class="text-[9px] text-gray-400">Y</span></div>
+                                <div class="w-10 h-10 border-2 rounded-lg flex flex-col items-center justify-center font-bold key-medial" data-key="u"><span>ㄧ</span><span class="text-[9px] text-gray-400">U</span></div>
+                                <div class="w-10 h-10 border-2 rounded-lg flex flex-col items-center justify-center font-bold key-vowel" data-key="i"><span>ㄛ</span><span class="text-[9px] text-gray-400">I</span></div>
+                                <div class="w-10 h-10 border-2 rounded-lg flex flex-col items-center justify-center font-bold key-vowel" data-key="o"><span>ㄟ</span><span class="text-[9px] text-gray-400">O</span></div>
+                                <div class="w-10 h-10 border-2 rounded-lg flex flex-col items-center justify-center font-bold key-vowel" data-key="p"><span>ㄣ</span><span class="text-[9px] text-gray-400">P</span></div>
+                            </div>
+                            <!-- 第三排 (ASDFGH... 再向右偏移) -->
+                            <div class="flex justify-start gap-1 ml-[33px]">
+                                <div class="w-10 h-10 border-2 rounded-lg flex flex-col items-center justify-center font-bold key-consonant" data-key="a"><span>ㄇ</span><span class="text-[9px] text-gray-400">A</span></div>
+                                <div class="w-10 h-10 border-2 rounded-lg flex flex-col items-center justify-center font-bold key-consonant" data-key="s"><span>ㄋ</span><span class="text-[9px] text-gray-400">S</span></div>
+                                <div class="w-10 h-10 border-2 rounded-lg flex flex-col items-center justify-center font-bold key-consonant" data-key="d"><span>ㄎ</span><span class="text-[9px] text-gray-400">D</span></div>
+                                <div class="w-10 h-10 border-2 rounded-lg flex flex-col items-center justify-center font-bold key-consonant" data-key="f"><span>ㄑ</span><span class="text-[9px] text-gray-400">F</span></div>
+                                <div class="w-10 h-10 border-2 rounded-lg flex flex-col items-center justify-center font-bold key-consonant" data-key="g"><span>ㄕ</span><span class="text-[9px] text-gray-400">G</span></div>
+                                <div class="w-10 h-10 border-2 rounded-lg flex flex-col items-center justify-center font-bold key-consonant" data-key="h"><span>ㄘ</span><span class="text-[9px] text-gray-400">H</span></div>
+                                <div class="w-10 h-10 border-2 rounded-lg flex flex-col items-center justify-center font-bold key-medial" data-key="j"><span>ㄨ</span><span class="text-[9px] text-gray-400">J</span></div>
+                                <div class="w-10 h-10 border-2 rounded-lg flex flex-col items-center justify-center font-bold key-vowel" data-key="k"><span>ㄜ</span><span class="text-[9px] text-gray-400">K</span></div>
+                                <div class="w-10 h-10 border-2 rounded-lg flex flex-col items-center justify-center font-bold key-vowel" data-key="l"><span>ㄠ</span><span class="text-[9px] text-gray-400">L</span></div>
+                                <div class="w-10 h-10 border-2 rounded-lg flex flex-col items-center justify-center font-bold key-vowel" data-key=";"><span>ㄤ</span><span class="text-[9px] text-gray-400">;</span></div>
+                            </div>
+                            <!-- 第四排 (ZXCVBN... 偏移最多，ㄥ字落於最右側斜線區) -->
+                            <div class="flex justify-start gap-1 ml-[55px]">
+                                <div class="w-10 h-10 border-2 rounded-lg flex flex-col items-center justify-center font-bold key-consonant" data-key="z"><span>ㄈ</span><span class="text-[9px] text-gray-400">Z</span></div>
+                                <div class="w-10 h-10 border-2 rounded-lg flex flex-col items-center justify-center font-bold key-consonant" data-key="x"><span>ㄌ</span><span class="text-[9px] text-gray-400">X</span></div>
+                                <div class="w-10 h-10 border-2 rounded-lg flex flex-col items-center justify-center font-bold key-consonant" data-key="c"><span>ㄏ</span><span class="text-[9px] text-gray-400">C</span></div>
+                                <div class="w-10 h-10 border-2 rounded-lg flex flex-col items-center justify-center font-bold key-consonant" data-key="v"><span>ㄒ</span><span class="text-[9px] text-gray-400">V</span></div>
+                                <div class="w-10 h-10 border-2 rounded-lg flex flex-col items-center justify-center font-bold key-consonant" data-key="b"><span>ㄖ</span><span class="text-[9px] text-gray-400">B</span></div>
+                                <div class="w-10 h-10 border-2 rounded-lg flex flex-col items-center justify-center font-bold key-consonant" data-key="n"><span>ㄙ</span><span class="text-[9px] text-gray-400">N</span></div>
+                                <div class="w-10 h-10 border-2 rounded-lg flex flex-col items-center justify-center font-bold key-medial" data-key="m"><span>ㄩ</span><span class="text-[9px] text-gray-400">M</span></div>
+                                <div class="w-10 h-10 border-2 rounded-lg flex flex-col items-center justify-center font-bold key-vowel" data-key=","><span>ㄝ</span><span class="text-[9px] text-gray-400">,</span></div>
+                                <div class="w-10 h-10 border-2 rounded-lg flex flex-col items-center justify-center font-bold key-vowel" data-key="."><span>ㄡ</span><span class="text-[9px] text-gray-400">.</span></div>
+                                <div class="w-10 h-10 border-2 rounded-lg flex flex-col items-center justify-center font-bold key-vowel" data-key="/"><span>ㄥ</span><span class="text-[9px] text-gray-400">/</span></div>
+                            </div>
+                            <!-- 第五排：空白鍵(一聲) 置中於區塊 -->
+                            <div class="flex justify-center gap-1 mt-2 w-full">
+                                <div class="w-64 h-10 border-2 rounded-lg flex items-center justify-center font-bold key-control" data-key=" ">
+                                    <span>空白鍵 ␣ (一聲)</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- 彈出視窗 1：過關慶祝與數據結算 -->
+    <div id="celebration-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white border-8 border-yellow-300 rounded-3xl p-6 max-w-md w-full text-center shadow-2xl relative animate-bounce-short">
+            <div class="text-6xl mb-3">🎉</div>
+            <h3 class="text-3xl font-black text-blue-600 mb-2 poem-font">太棒了！挑戰成功</h3>
+            <p id="modal-poem-title" class="text-lg text-gray-500 font-bold mb-4">《靜夜思》李白</p>
+            
+            <!-- 評星 -->
+            <div id="modal-stars" class="text-4xl text-yellow-400 flex justify-center gap-2 mb-6">
+                ⭐⭐⭐
+            </div>
+
+            <div class="bg-gray-50 rounded-2xl p-4 mb-6 space-y-2 text-left">
+                <div class="flex justify-between font-bold text-gray-600">
+                    <span>🎯 準確率：</span>
+                    <span id="modal-accuracy" class="text-green-600">98%</span>
+                </div>
+                <div class="flex justify-between font-bold text-gray-600">
+                    <span>⚡ 打字速度：</span>
+                    <span id="modal-wpm" class="text-blue-600">25 字/分</span>
+                </div>
+                <div class="flex justify-between font-bold text-orange-600 border-t border-gray-200 pt-2 mt-2">
+                    <span>🎁 獲得積分：</span>
+                    <span id="modal-score" class="font-black">+150</span>
+                </div>
+            </div>
+
+            <div class="flex gap-3">
+                <button onclick="closeCelebrationModal()" class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 py-3 rounded-2xl font-black transition">
+                    留在本首
+                </button>
+                <button onclick="loadNextPoem()" class="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-2xl font-black shadow-md transition">
+                    下一首 🚀
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 彈出視窗 2：一般設定與進度重置 -->
+    <div id="settings-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white border-4 border-gray-300 rounded-3xl p-6 max-w-sm w-full shadow-xl">
+            <h3 class="text-xl font-black text-gray-800 mb-4 flex items-center gap-2">⚙️ 設定與管理</h3>
+            
+            <div class="space-y-4 mb-6">
+                <!-- 音效開關 -->
+                <div class="flex items-center justify-between">
+                    <span class="font-bold text-gray-600">🔊 遊戲音效</span>
+                    <label class="inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="sound-toggle" checked class="sr-only peer">
+                        <div class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                    </label>
+                </div>
+                <!-- 語速設定 -->
+                <div>
+                    <span class="font-bold text-gray-600 block mb-1">🗣️ 朗讀速度</span>
+                    <input type="range" id="speech-rate" min="0.5" max="1.5" step="0.1" value="0.8" class="w-full">
+                    <div class="flex justify-between text-xs text-gray-400 mt-1">
+                        <span>慢速</span>
+                        <span>標準</span>
+                        <span>快速</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="border-t border-gray-100 pt-4 space-y-2">
+                <button onclick="resetAllProgress()" class="w-full bg-red-100 hover:bg-red-200 text-red-600 py-2.5 rounded-xl text-sm font-black transition">
+                    ⚠️ 清空所有練習進度(重置)
+                </button>
+                <button onclick="toggleSettingsModal()" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-2.5 rounded-xl text-sm font-black transition">
+                    關閉設定
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 頁尾 -->
+    <footer class="bg-gray-100 border-t border-gray-200 py-4 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 text-center text-xs text-gray-400 font-bold">
+            <p>本網站僅供練習，注音如有錯誤，請以教育部公佈為主。</p>
+            <p class="mt-1">© 2026 榮富國小 唐詩注音打字小達人 - 專為國小三年級打字教學研發</p>
+        </div>
+    </footer>
+
+    <!-- JS 邏輯代碼 -->
+    <script>
+        // 50首精選唐詩資料庫
+        const POEMS_DATABASE = [
+            {
+                title: "靜夜思", titleZhuyin: ["ㄐㄧㄥˋ", "ㄧㄝˋ", "ㄙ"],
+                author: "李白", authorZhuyin: ["ㄌㄧˇ", "ㄅㄞˊ"],
+                lines: [
+                    { text: "床前明月光", zhuyin: "ㄔㄨㄤˊ ㄑㄧㄢˊ ㄇㄧㄥˊ ㄩㄝˋ ㄍㄨㄤ" },
+                    { text: "疑是地上霜", zhuyin: "ㄧˊ ㄕˋ ㄉㄧˋ ㄕㄤˋ ㄕㄨㄤ" },
+                    { text: "舉頭望明月", zhuyin: "ㄐㄩˇ ㄊㄡˊ ㄨㄤˋ ㄇㄧㄥˊ ㄩㄝˋ" },
+                    { text: "低頭思故鄉", zhuyin: "ㄉㄧ ㄊㄡˊ ㄙ ㄍㄨˋ ㄒㄧㄤ" }
+                ]
+            },
+            {
+                title: "登鸛雀樓", titleZhuyin: ["ㄉㄥ", "ㄍㄨㄢˋ", "ㄑㄩㄝˋ", "ㄌㄡˊ"],
+                author: "王之渙", authorZhuyin: ["ㄨㄤˊ", "ㄓ", "ㄏㄨㄢˋ"],
+                lines: [
+                    { text: "白日依山盡", zhuyin: "ㄅㄞˊ ㄖˋ ㄧ ㄕㄢ ㄐㄧㄣˋ" },
+                    { text: "黃河入海流", zhuyin: "ㄏㄨㄤˊ ㄏㄜˊ ㄖㄨˋ ㄏㄞˇ ㄌㄧㄡˊ" },
+                    { text: "欲窮千里目", zhuyin: "ㄩˋ ㄑㄩㄥˊ ㄑㄧㄢ ㄌㄧˇ ㄇㄨˋ" },
+                    { text: "更上一層樓", zhuyin: "ㄍㄥˋ ㄕㄤˋ ㄧˋ ㄘㄥˊ ㄌㄡˊ" }
+                ]
+            },
+            {
+                title: "春曉", titleZhuyin: ["ㄔㄨㄣ", "ㄒㄧㄠˇ"],
+                author: "孟浩然", authorZhuyin: ["ㄇㄥˋ", "ㄏㄠˋ", "ㄖㄢˊ"],
+                lines: [
+                    { text: "春眠不覺曉", zhuyin: "ㄔㄨㄣ ㄇㄧㄢˊ ㄅㄨˋ ㄐㄩㄝˊ ㄒㄧㄠˇ" },
+                    { text: "處處聞啼鳥", zhuyin: "ㄔㄨˋ ㄔㄨˋ ㄨㄣˊ ㄊㄧˊ ㄋㄧㄠˇ" },
+                    { text: "夜來風雨聲", zhuyin: "ㄧㄝˋ ㄌㄞˊ ㄈㄥ ㄩˇ ㄕㄥ" },
+                    { text: "花落知多少", zhuyin: "ㄏㄨㄚ ㄌㄨㄛˋ ㄓ ㄉㄨㄛ ㄕㄠˇ" }
+                ]
+            },
+            {
+                title: "相思", titleZhuyin: ["ㄒㄧㄤ", "ㄙ"],
+                author: "王維", authorZhuyin: ["ㄨㄤˊ", "ㄨㄟˊ"],
+                lines: [
+                    { text: "紅豆生南國", zhuyin: "ㄏㄨㄥˊ ㄉㄡˋ ㄕㄥ ㄋㄢˊ ㄍㄨㄛˊ" },
+                    { text: "春來發幾枝", zhuyin: "ㄔㄨㄣ ㄌㄞˊ ㄈㄚ ㄐㄧˇ ㄓ" },
+                    { text: "願君多採擷", zhuyin: "ㄩㄢˋ ㄐㄩㄣ ㄉㄨㄛ ㄘㄞˇ ㄒㄧㄝˊ" },
+                    { text: "此物最相思", zhuyin: "ㄘˇ ㄨˋ ㄗㄨㄟˋ ㄒㄧㄤ ㄙ" }
+                ]
+            },
+            {
+                title: "江雪", titleZhuyin: ["ㄐㄧㄤ", "ㄒㄩㄝˇ"],
+                author: "柳宗元", authorZhuyin: ["ㄌㄧㄡˇ", "ㄗㄨㄥ", "ㄩㄢˊ"],
+                lines: [
+                    { text: "千山鳥飛絕", zhuyin: "ㄑㄧㄢ ㄕㄢ ㄋㄧㄠˇ ㄈㄟ ㄐㄩㄝˊ" },
+                    { text: "萬徑人蹤滅", zhuyin: "ㄨㄢˋ ㄐㄧㄥˋ ㄖㄣˊ ㄗㄨㄥ ㄇㄧㄝˋ" },
+                    { text: "孤舟蓑笠翁", zhuyin: "ㄍㄨ ㄓㄡ ㄙㄨㄛ ㄌㄧˋ ㄨㄥ" },
+                    { text: "獨釣寒江雪", zhuyin: "ㄉㄨˊ ㄉㄧㄠˋ ㄏㄢˊ ㄐㄧㄤ ㄒㄩㄝˇ" }
+                ]
+            },
+            {
+                title: "尋隱者不遇", titleZhuyin: ["ㄒㄩㄣˊ", "ㄧㄣˇ", "ㄓㄜˇ", "ㄅㄨˊ", "ㄩˋ"],
+                author: "賈島", authorZhuyin: ["ㄐㄧㄚˇ", "ㄉㄠˇ"],
+                lines: [
+                    { text: "松下問童子", zhuyin: "ㄙㄨㄥ ㄒㄧㄚˋ ㄨㄣˋ ㄊㄨㄥˊ ㄗˇ" },
+                    { text: "言師採藥去", zhuyin: "ㄧㄢˊ ㄕ ㄘㄞˇ ㄧㄠˋ ㄑㄩˋ" },
+                    { text: "只在此山中", zhuyin: "ㄓˇ ㄗㄞˋ ㄘˇ ㄕㄢ ㄓㄨㄥ" },
+                    { text: "雲深不知處", zhuyin: "ㄩㄣˊ ㄕㄣ ㄅㄨˋ ㄓ ㄔㄨˋ" }
+                ]
+            },
+            {
+                title: "憫農", titleZhuyin: ["ㄇㄧㄣˇ", "ㄋㄨㄥˊ"],
+                author: "李紳", authorZhuyin: ["ㄌㄧˇ", "ㄕㄣ"],
+                lines: [
+                    { text: "鋤禾日當午", zhuyin: "ㄔㄨˊ ㄏㄜˊ ㄖˋ ㄉㄤ ㄨˇ" },
+                    { text: "汗滴禾下土", zhuyin: "ㄏㄢˋ ㄉㄧˊ ㄏㄜˊ ㄒㄧㄚˋ ㄊㄨˇ" },
+                    { text: "誰知盤中飧", zhuyin: "ㄕㄟˊ ㄓ ㄆㄢˊ ㄓㄨㄥ ㄙㄨㄣ" },
+                    { text: "粒粒皆辛苦", zhuyin: "ㄌㄧˋ ㄌㄧˋ ㄐㄧㄝ ㄒㄧㄣ ㄎㄨˇ" }
+                ]
+            },
+            {
+                title: "登樂遊原", titleZhuyin: ["ㄉㄥ", "ㄌㄜˋ", "ㄧㄡˊ", "ㄩㄢˊ"],
+                author: "李商隱", authorZhuyin: ["ㄌㄧˇ", "ㄕㄤ", "ㄧㄣˇ"],
+                lines: [
+                    { text: "向晚意不適", zhuyin: "ㄒㄧㄤˋ ㄨㄢˇ ㄧˋ ㄅㄨˋ ㄕˋ" },
+                    { text: "驅車登古原", zhuyin: "ㄑㄩ ㄔㄜ ㄉㄥ ㄍㄨˇ ㄩㄢˊ" },
+                    { text: "夕陽無限好", zhuyin: "ㄒㄧˋ ㄧㄤˊ ㄨˊ ㄒㄧㄢˋ ㄏㄠˇ" },
+                    { text: "只是近黃昏", zhuyin: "ㄓˇ ㄕˋ ㄐㄧㄣˋ ㄏㄨㄤˊ ㄏㄨㄣ" }
+                ]
+            },
+            {
+                title: "鹿柴", titleZhuyin: ["ㄌㄨˋ", "ㄓㄞˋ"],
+                author: "王維", authorZhuyin: ["ㄨㄤˊ", "ㄨㄟˊ"],
+                lines: [
+                    { text: "空山不見人", zhuyin: "ㄎㄨㄥ ㄕㄢ ㄅㄨˊ ㄐㄧㄢˋ ㄖㄣˊ" },
+                    { text: "但聞人語響", zhuyin: "ㄉㄢˋ ㄨㄣˊ ㄖㄣˊ ㄩˇ ㄒㄧㄤˇ" },
+                    { text: "返景入深林", zhuyin: "ㄈㄢˇ ㄧㄥˇ ㄖㄨˋ ㄕㄣ ㄌㄧㄣˊ" },
+                    { text: "復照青苔上", zhuyin: "ㄈㄨˋ ㄓㄠˋ ㄑㄧㄥ ㄊㄞˊ ㄕㄤˋ" }
+                ]
+            },
+            {
+                title: "竹里館", titleZhuyin: ["ㄓㄨ", "ㄌㄧˇ", "ㄍㄨㄢˇ"],
+                author: "王維", authorZhuyin: ["ㄨㄤˊ", "ㄨㄟˊ"],
+                lines: [
+                    { text: "獨坐幽篁裏", zhuyin: "ㄉㄨˊ ㄗㄨㄛˋ ㄧㄡ ㄏㄨㄤˊ ㄌㄧˇ" },
+                    { text: "彈琴復長嘯", zhuyin: "ㄉㄢˊ ㄑㄧㄣˊ ㄈㄨˋ ㄔㄤˊ ㄒㄧㄠˋ" },
+                    { text: "深林人不知", zhuyin: "ㄕㄣ ㄌㄧㄣˊ ㄖㄣˊ ㄅㄨˋ ㄓ" },
+                    { text: "明月來相照", zhuyin: "ㄇㄧㄥˊ ㄩㄝˋ ㄌㄞˊ ㄒㄧㄤ ㄓㄠˋ" }
+                ]
+            },
+            {
+                title: "獨坐敬亭山", titleZhuyin: ["ㄉㄨˊ", "ㄗㄨㄛˋ", "ㄐㄧㄥˋ", "ㄊㄧㄥˊ", "ㄕㄢ"],
+                author: "李白", authorZhuyin: ["ㄌㄧˇ", "ㄅㄞˊ"],
+                lines: [
+                    { text: "眾鳥高飛盡", zhuyin: "ㄓㄨㄥˋ ㄋㄧㄠˇ ㄍㄠ ㄈㄟ ㄐㄧㄣˋ" },
+                    { text: "孤雲獨去閒", zhuyin: "ㄍㄨ ㄩㄣˊ ㄉㄨˊ ㄑㄩˋ ㄒㄧㄢˊ" },
+                    { text: "相看兩不厭", zhuyin: "ㄒㄧㄤ ㄎㄢˋ ㄌㄧㄤˇ ㄅㄨˋ ㄧㄢˋ" },
+                    { text: "只有敬亭山", zhuyin: "ㄓˇ ㄧㄡˇ ㄐㄧㄥˋ ㄊㄧㄥˊ ㄕㄢ" }
+                ]
+            },
+            {
+                title: "鳥鳴澗", titleZhuyin: ["ㄋㄧㄠˇ", "ㄇㄧㄥˊ", "ㄐㄧㄢˋ"],
+                author: "王維", authorZhuyin: ["ㄨㄤˊ", "ㄨㄟˊ"],
+                lines: [
+                    { text: "人閒桂花落", zhuyin: "ㄖㄣˊ ㄒㄧㄢˊ ㄍㄨㄟˋ ㄏㄨㄚ ㄌㄨㄛˋ" },
+                    { text: "夜靜春山空", zhuyin: "ㄧㄝˋ ㄐㄧㄥˋ ㄔㄨㄣ ㄕㄢ ㄎㄨㄥ" },
+                    { text: "月出驚山鳥", zhuyin: "ㄩㄝˋ ㄔㄨ ㄐㄧㄥ ㄕㄢ ㄋㄧㄠˇ" },
+                    { text: "時鳴春澗中", zhuyin: "ㄕˊ ㄇㄧㄥˊ ㄔㄨㄣ ㄐㄧㄢˋ ㄓㄨㄥ" }
+                ]
+            },
+            {
+                title: "宿建德江", titleZhuyin: ["ㄙㄨˋ", "ㄐㄧㄢˋ", "ㄉㄜˊ", "ㄐㄧㄤ"],
+                author: "孟浩然", authorZhuyin: ["ㄇㄥˋ", "ㄏㄠˋ", "ㄖㄢˊ"],
+                lines: [
+                    { text: "移舟泊煙渚", zhuyin: "ㄧˊ ㄓㄡ ㄅㄛˊ ㄧㄢ ㄓㄨˇ" },
+                    { text: "日暮客愁新", zhuyin: "ㄖˋ ㄇㄨˋ ㄎㄜˋ ㄔㄡˊ ㄒㄧㄣ" },
+                    { text: "野曠天低樹", zhuyin: "ㄧㄝˇ ㄎㄨㄤˋ ㄊㄧㄢ ㄉㄧ ㄕㄨˋ" },
+                    { text: "江清月近人", zhuyin: "ㄐㄧㄤ ㄑㄧㄥ ㄩㄝˋ ㄐㄧㄣˋ ㄖㄣˊ" }
+                ]
+            },
+            {
+                title: "怨情", titleZhuyin: ["ㄩㄢˋ", "ㄑㄧㄥˊ"],
+                author: "李白", authorZhuyin: ["ㄌㄧˇ", "ㄅㄞˊ"],
+                lines: [
+                    { text: "美人卷珠簾", zhuyin: "ㄇㄟˇ ㄖㄣˊ ㄐㄩㄢˇ ㄓㄨ ㄌㄧㄢˊ" },
+                    { text: "深坐顰蛾眉", zhuyin: "ㄕㄣ ㄗㄨㄛˋ ㄆㄧㄣˊ ㄜˊ ㄇㄟˊ" },
+                    { text: "但見淚痕濕", zhuyin: "ㄉㄢˋ ㄐㄧㄢˋ ㄌㄟˋ ㄏㄣˊ ㄕ" },
+                    { text: "不知心恨誰", zhuyin: "ㄅㄨˋ ㄓ ㄒㄧㄣ ㄏㄣˋ ㄕㄟˊ" }
+                ]
+            },
+            {
+                title: "送靈澈上人", titleZhuyin: ["ㄙㄨㄥˋ", "ㄌㄧㄥˊ", "ㄔㄜˋ", "ㄕㄤˋ", "ㄖㄣˊ"],
+                author: "劉長卿", authorZhuyin: ["ㄌㄧㄡˊ", "ㄔㄤˊ", "ㄑㄧㄥ"],
+                lines: [
+                    { text: "蒼蒼竹林寺", zhuyin: "ㄘㄤ ㄘㄤ ㄓㄨˊ ㄌㄧㄣˊ ㄙˋ" },
+                    { text: "杳杳鐘聲晚", zhuyin: "ㄧㄠˇ ㄧㄠˇ ㄓㄨㄥ ㄕㄥ ㄨㄢˇ" },
+                    { text: "荷笠帶斜陽", zhuyin: "ㄏㄜˊ ㄌㄧˋ ㄉㄞˋ ㄒㄧㄝˊ ㄧㄤˊ" },
+                    { text: "青山獨歸遠", zhuyin: "ㄑㄧㄥ ㄕㄢ ㄉㄨˊ ㄍㄨㄟ ㄩㄢˇ" }
+                ]
+            },
+            {
+                title: "聽彈琴", titleZhuyin: ["ㄊㄧㄥ", "ㄊㄢˊ", "ㄑㄧㄣˊ"],
+                author: "劉長卿", authorZhuyin: ["ㄌㄧㄡˊ", "ㄔㄤˊ", "ㄑㄧㄥ"],
+                lines: [
+                    { text: "泠泠七弦上", zhuyin: "ㄌㄧㄥˊ ㄌㄧㄥˊ ㄑㄧ ㄒㄧㄢˊ ㄕㄤˋ" },
+                    { text: "靜聽松風寒", zhuyin: "ㄐㄧㄥˋ ㄊㄧㄥ ㄙㄨㄥ ㄈㄥ ㄏㄢˊ" },
+                    { text: "古調雖自愛", zhuyin: "ㄍㄨˇ ㄉㄧㄠˋ ㄙㄨㄟ ㄗˋ ㄞˋ" },
+                    { text: "今人多不彈", zhuyin: "ㄐㄧㄣ ㄖㄣˊ ㄉㄨㄛ ㄅㄨˋ ㄊㄢˊ" }
+                ]
+            },
+            {
+                title: "雜詩", titleZhuyin: ["ㄗㄚˊ", "ㄕ"],
+                author: "王維", authorZhuyin: ["ㄨㄤˊ", "ㄨㄟˊ"],
+                lines: [
+                    { text: "君自故鄉來", zhuyin: "ㄐㄩㄣ ㄗˋ ㄍㄨˋ ㄒㄧㄤ ㄌㄞˊ" },
+                    { text: "應知故鄉事", zhuyin: "ㄧㄥ ㄓ ㄍㄨˋ ㄒㄧㄤ ㄕˋ" },
+                    { text: "來日綺窗前", zhuyin: "ㄌㄞˊ ㄖˋ ㄑㄧˇ ㄔㄨㄤ ㄑㄧㄢˊ" },
+                    { text: "寒梅著花未", zhuyin: "ㄏㄢˊ ㄇㄟˊ ㄓㄨㄛˊ ㄏㄨㄚ ㄨㄟˋ" }
+                ]
+            },
+            {
+                title: "逢雪宿芙蓉山主人", titleZhuyin: ["ㄈㄥˊ", "ㄒㄩㄝˇ", "ㄙㄨˋ", "ㄈㄨˊ", "ㄖㄨˊ", "ㄕㄢ", "ㄓㄨˇ", "ㄖㄣˊ"],
+                author: "劉長卿", authorZhuyin: ["ㄌㄧㄡˊ", "ㄔㄤˊ", "ㄑㄧㄥ"],
+                lines: [
+                    { text: "日暮蒼山遠", zhuyin: "ㄖˋ ㄇㄨˋ ㄘㄤ ㄕㄢ ㄩㄢˇ" },
+                    { text: "天寒白屋貧", zhuyin: "ㄊㄧㄢ ㄏㄢˊ ㄅㄞˊ ㄨ ㄆㄧㄣˊ" },
+                    { text: "柴門聞犬吠", zhuyin: "ㄔㄞˊ ㄇㄣˊ ㄨㄣˊ ㄑㄩㄢˇ ㄈㄟˋ" },
+                    { text: "風雪夜歸人", zhuyin: "ㄈㄥ ㄒㄩㄝˇ ㄧㄝˋ ㄍㄨㄟ ㄖㄣˊ" }
+                ]
+            },
+            {
+                title: "江南逢李龜年", titleZhuyin: ["ㄐㄧㄢ", "ㄋㄢˊ", "ㄈㄥˊ", "ㄌㄧˇ", "ㄍㄨㄟ", "ㄋㄧㄢˊ"],
+                author: "杜甫", authorZhuyin: ["ㄉㄨˋ", "ㄈㄨˇ"],
+                lines: [
+                    { text: "岐王宅裡尋常見", zhuyin: "ㄑㄧˊ ㄨㄤˊ ㄓㄞˊ ㄌㄧˇ ㄒㄩㄣˊ ㄔㄤˊ ㄐㄧㄢˋ" },
+                    { text: "崔九堂前幾度聞", zhuyin: "ㄘㄨㄟ ㄐㄧㄡˇ ㄊㄤˊ ㄑㄧㄢˊ ㄐㄧˇ ㄉㄨˋ ㄨㄣˊ" },
+                    { text: "正是江南好風景", zhuyin: "ㄓㄥˋ ㄕˋ ㄐㄧㄢ ㄋㄢˊ ㄏㄠˇ ㄈㄥ ㄐㄧㄥˇ" },
+                    { text: "落花時節又逢君", zhuyin: "ㄌㄨㄛˋ ㄏㄨㄚ ㄕˊ ㄐㄧㄝˊ ㄧㄡˋ ㄈㄥ ㄐㄩㄣ" }
+                ]
+            },
+            {
+                title: "贈汪倫", titleZhuyin: ["ㄗㄨㄥˋ", "ㄨㄤ", "ㄌㄨㄣˊ"],
+                author: "李白", authorZhuyin: ["ㄌㄧˇ", "ㄅㄞˊ"],
+                lines: [
+                    { text: "李白乘舟將欲行", zhuyin: "ㄌㄧˇ ㄅㄞˊ ㄔㄥˊ ㄓㄡ ㄐㄧㄤ ㄩˋ ㄒㄧㄥˊ" },
+                    { text: "忽聞岸上踏歌聲", zhuyin: "ㄏㄨ ㄨㄣˊ ㄢˋ ㄕㄤˋ ㄊㄚˋ ㄍㄜ ㄕㄥ" },
+                    { text: "桃花潭水深千尺", zhuyin: "ㄊㄠˊ ㄏㄨㄚ ㄊㄢˊ ㄕㄨㄟˇ ㄕㄣ ㄑㄧㄢ ㄔˇ" },
+                    { text: "不及汪倫送我情", zhuyin: "ㄅㄨˋ ㄐㄧˊ ㄨㄤ ㄌㄨㄣˊ ㄙㄨㄥˋ ㄨㄛˇ ㄑㄧㄥˊ" }
+                ]
+            },
+            {
+                title: "黃鶴樓送孟浩然之廣陵", titleZhuyin: ["ㄏㄨㄤˊ", "ㄏㄜˋ", "ㄌㄡˊ", "ㄙㄨㄥˋ", "ㄇㄥˋ", "ㄏㄠˋ", "ㄖㄢˊ", "ㄓ", "ㄍㄨㄤˇ", "ㄌㄧㄥˊ"],
+                author: "李白", authorZhuyin: ["ㄌㄧˇ", "ㄅㄞˊ"],
+                lines: [
+                    { text: "故人西辭黃鶴樓", zhuyin: "ㄍㄨˋ ㄖㄣˊ ㄒㄧ ㄘˊ ㄏㄨㄤˊ ㄏㄜˋ ㄌㄡˊ" },
+                    { text: "煙花三月下揚州", zhuyin: "ㄧㄢ ㄏㄨㄚ ㄙㄢ ㄩㄝˋ ㄒㄧㄚˋ ㄧㄤˊ ㄓㄡ" },
+                    { text: "孤帆遠影碧空盡", zhuyin: "ㄍㄨ ㄈㄢ ㄩㄢˇ ㄧㄥˇ ㄅㄧˋ ㄎㄨㄥ ㄐㄧㄣˋ" },
+                    { text: "唯見長江天際流", zhuyin: "ㄨㄟˊ ㄐㄧㄢˋ ㄔㄤˊ ㄐㄧㄤ ㄊㄧㄢ ㄐㄧˋ ㄌㄧㄡˊ" }
+                ]
+            },
+            {
+                title: "回鄉偶書", titleZhuyin: ["ㄏㄨㄟˊ", "ㄒㄧㄤ", "ㄡˇ", "ㄕㄨ"],
+                author: "賀知章", authorZhuyin: ["ㄏㄜˋ", "ㄓ", "ㄓㄤ"],
+                lines: [
+                    { text: "少小離家老大回", zhuyin: "ㄕㄠˋ ㄒㄧㄠˇ ㄌㄧˊ ㄐㄧㄚ ㄌㄠˇ ㄉㄚˋ ㄏㄨㄟˊ" },
+                    { text: "鄉音無改鬢毛衰", zhuyin: "ㄒㄧㄤ ㄧㄣ ㄨˊ ㄍㄞˇ ㄅㄧㄣˋ ㄇㄠˊ ㄘㄨㄟ" },
+                    { text: "兒童相見不相識", zhuyin: "ㄦˊ ㄊㄨㄥˊ ㄒㄧㄤ ㄐㄧㄢˋ ㄅㄨˋ ㄒㄧㄤ ㄕˋ" },
+                    { text: "笑問客從何處來", zhuyin: "ㄒㄧㄠˋ ㄨㄣˋ ㄎㄜˋ ㄘㄨㄥˊ ㄏㄜˊ ㄔㄨˋ ㄌㄞˊ" }
+                ]
+            },
+            {
+                title: "涼州詞", titleZhuyin: ["ㄌㄧㄤˊ", "ㄓㄡ", "ㄘˊ"],
+                author: "王之渙", authorZhuyin: ["ㄨㄤˊ", "ㄓ", "ㄏㄨㄢˋ"],
+                lines: [
+                    { text: "黃河遠上白雲間", zhuyin: "ㄏㄨㄤˊ ㄏㄜˊ ㄩㄢˇ ㄕㄤˋ ㄅㄞˊ ㄩㄣˊ ㄐㄧㄢ" },
+                    { text: "一片孤城萬仞山", zhuyin: "ㄧˊ ㄆㄧㄢˋ ㄍㄨ ㄔㄥˊ ㄨㄢˋ ㄖㄣˋ ㄕㄢ" },
+                    { text: "羌笛何須怨楊柳", zhuyin: "ㄑㄧㄤ ㄉㄧˊ ㄏㄜˊ ㄒㄩ ㄩㄢˋ ㄧㄤˊ ㄌㄧㄡˇ" },
+                    { text: "春風不度玉門關", zhuyin: "ㄔㄨㄣ ㄈㄥ ㄅㄨˊ ㄉㄨˋ ㄩˋ ㄇㄣˊ ㄍㄨㄢ" }
+                ]
+            },
+            {
+                title: "出塞", titleZhuyin: ["ㄔㄨ", "ㄙㄞˋ"],
+                author: "王昌齡", authorZhuyin: ["ㄨㄤˊ", "ㄔㄤ", "ㄌㄧㄥˊ"],
+                lines: [
+                    { text: "秦時明月漢時關", zhuyin: "ㄑㄧㄣˊ ㄕˊ ㄇㄧㄥˊ ㄩㄝˋ ㄏㄢˋ ㄕˊ ㄍㄨㄢ" },
+                    { text: "萬里長征人未還", zhuyin: "ㄨㄢˋ ㄌㄧˇ ㄔㄤˊ ㄓㄥ ㄖㄣˊ ㄨㄟˋ ㄏㄨㄢˊ" },
+                    { text: "任使龍城飛將在", zhuyin: "ㄉㄢˋ ㄕˇ ㄌㄨㄥˊ ㄔㄥˊ ㄈㄟ ㄐㄧㄤˋ ㄗㄞˋ" },
+                    { text: "不教胡馬度陰山", zhuyin: "ㄅㄨˋ ㄐㄧㄠˋ ㄏㄨˊ ㄇㄚˇ ㄉㄨˋ ㄧㄣ ㄕㄢ" }
+                ]
+            },
+            {
+                title: "芙蓉樓送辛漸", titleZhuyin: ["ㄈㄨˊ", "ㄖㄨˊ", "ㄌㄡˊ", "ㄙㄨㄥˋ", "ㄒㄧㄣ", "ㄐㄧㄢˋ"],
+                author: "王昌齡", authorZhuyin: ["ㄨㄤˊ", "ㄔㄤ", "ㄌㄧㄥˊ"],
+                lines: [
+                    { text: "寒雨連江夜入吳", zhuyin: "ㄏㄢˊ ㄩˇ ㄌㄧㄢˊ ㄐㄧㄤ ㄧㄝˋ ㄖㄨˋ ㄨˊ" },
+                    { text: "平明送客楚山孤", zhuyin: "ㄆㄧㄥˊ ㄇㄧㄥˊ ㄙㄨㄥˋ ㄎㄜˋ ㄔㄨˇ ㄕㄢ ㄍㄨ" },
+                    { text: "洛陽親友如相問", zhuyin: "ㄌㄨㄛˋ ㄧㄤˊ ㄑㄧㄣ ㄧㄡˇ ㄖㄨˊ ㄒㄧㄤ ㄨㄣˋ" },
+                    { text: "一片冰心在玉壺", zhuyin: "ㄧˊ ㄆㄧㄢˋ ㄅㄧㄥ ㄒㄧㄣ ㄗㄞˋ ㄩˋ ㄏㄨˊ" }
+                ]
+            },
+            {
+                title: "閨怨", titleZhuyin: ["ㄍㄨㄟ", "ㄩㄢˋ"],
+                author: "王昌齡", authorZhuyin: ["ㄨㄤˊ", "ㄔㄤ", "ㄌㄧㄥˊ"],
+                lines: [
+                    { text: "閨中少婦不知愁", zhuyin: "ㄍㄨㄟ ㄓㄨㄥ ㄕㄠˇ ㄈㄨˋ ㄅㄨˋ ㄓ ㄔㄡˊ" },
+                    { text: "春日凝妝上翠樓", zhuyin: "ㄔㄨㄣ ㄖˋ ㄋㄧㄥˊ ㄓㄨㄤ ㄕㄤˋ ㄘㄨㄟˋ ㄌㄡˊ" },
+                    { text: "忽見陌頭楊柳色", zhuyin: "ㄏㄨ ㄐㄧㄢˋ ㄇㄛˋ ㄊㄡˊ ㄧㄤˊ ㄌㄧㄡˇ ㄙㄜˋ" },
+                    { text: "悔教夫婿覓封侯", zhuyin: "ㄏㄨㄟˇ ㄐㄧㄠˋ ㄈㄨ ㄒㄩˋ ㄇㄧˋ ㄈㄥ ㄏㄡˊ" }
+                ]
+            },
+            {
+                title: "春怨", titleZhuyin: ["ㄔㄨㄣ", "ㄩㄢˋ"],
+                author: "金昌緒", authorZhuyin: ["ㄐㄧㄣ", "ㄔㄤ", "ㄒㄩˋ"],
+                lines: [
+                    { text: "打起黃鶯兒", zhuyin: "ㄉㄚˇ ㄑㄧˇ ㄏㄨㄤˊ ㄧㄥ ㄦˊ" },
+                    { text: "莫教枝上啼", zhuyin: "ㄇㄛˋ ㄐㄧㄠˋ ㄓ ㄕㄤˋ ㄊㄧˊ" },
+                    { text: "啼時驚妾夢", zhuyin: "ㄊㄧˊ ㄕˊ ㄐㄧㄥ ㄑㄧㄝˋ ㄇㄥˋ" },
+                    { text: "不得到遼西", zhuyin: "ㄅㄨˋ ㄉㄜˊ ㄉㄠˋ ㄌㄧㄠˊ ㄒㄧ" }
+                ]
+            },
+            {
+                title: "烏衣巷", titleZhuyin: ["ㄨ", "ㄧ", "ㄒㄧㄤˋ"],
+                author: "劉禹錫", authorZhuyin: ["ㄌㄧㄡˇ", "ㄩˇ", "ㄒㄧ"],
+                lines: [
+                    { text: "朱雀橋邊野草花", zhuyin: "ㄓㄨ ㄑㄩㄝˋ ㄑㄧㄠˊ ㄅㄧㄢ ㄧㄝˇ ㄘㄠˇ ㄏㄨㄚ" },
+                    { text: "烏衣巷口夕陽斜", zhuyin: "ㄨ ㄧ ㄒㄧㄤˋ ㄎㄡˇ ㄒㄧˋ ㄧㄤˊ ㄒㄧㄝˊ" },
+                    { text: "舊時王謝堂前燕", zhuyin: "ㄐㄧㄡˋ ㄕˊ ㄨㄤˊ ㄒㄧㄝˋ ㄊㄤˊ ㄑㄧㄢˊ ㄧㄢˋ" },
+                    { text: "飛入尋常百姓家", zhuyin: "ㄈㄟ ㄖㄨˋ ㄒㄩㄣˊ ㄔㄤˊ ㄅㄞˇ ㄒㄧㄥˋ ㄐㄧㄚ" }
+                ]
+            },
+            {
+                title: "宮詞", titleZhuyin: ["ㄍㄨㄥ", "ㄘˊ"],
+                author: "白居易", authorZhuyin: ["ㄅㄞˊ", "ㄐㄩ", "ㄧˋ"],
+                lines: [
+                    { text: "淚濕羅巾夢不成", zhuyin: "ㄌㄟˋ ㄕ ㄌㄨㄛˊ ㄐㄧㄣ ㄇㄥˋ ㄅㄨˋ ㄔㄥˊ" },
+                    { text: "夜深前殿按歌聲", zhuyin: "ㄧㄝˋ ㄕㄣ ㄑㄧㄢˊ ㄉㄧㄢˋ ㄢˋ ㄍㄜ ㄕㄥ" },
+                    { text: "紅顏未老恩先斷", zhuyin: "ㄏㄨㄥˊ ㄧㄢˊ ㄨㄟˋ ㄌㄠˇ ㄣ ㄒㄧㄢ ㄉㄨㄢˋ" },
+                    { text: "斜倚薰籠坐到明", zhuyin: "ㄒㄧㄝˊ ㄧˇ ㄒㄩㄣ ㄌㄨㄥˊ ㄗㄨㄛˋ ㄉㄠˋ ㄇㄧㄥˊ" }
+                ]
+            },
+            {
+                title: "楓橋夜泊", titleZhuyin: ["ㄈㄥ", "ㄑㄧㄠˊ", "ㄧㄝˋ", "ㄅㄛˊ"],
+                author: "張繼", authorZhuyin: ["ㄓㄤ", "ㄐㄧˋ"],
+                lines: [
+                    { text: "月落烏啼霜滿天", zhuyin: "ㄩㄝˋ ㄌㄨㄛˋ ㄨ ㄊㄧˊ ㄕㄨㄤ ㄇㄢˇ ㄊㄧㄢ" },
+                    { text: "江楓漁火對愁眠", zhuyin: "ㄐㄧㄤ ㄈㄥ ㄩˊ ㄏㄨㄛˇ ㄉㄨㄟˋ ㄔㄡˊ ㄇㄧㄢˊ" },
+                    { text: "姑蘇城外寒山寺", zhuyin: "ㄍㄨ ㄙㄨ ㄔㄥˊ ㄨㄞˋ ㄏㄢˊ ㄕㄢ ㄙˋ" },
+                    { text: "夜半鐘聲到客船", zhuyin: "ㄧㄝˋ ㄅㄢˋ ㄓㄨㄥ ㄕㄥ ㄉㄠˋ ㄎㄜˋ ㄔㄨㄢˊ" }
+                ]
+            },
+            {
+                title: "寒食", titleZhuyin: ["ㄏㄢˊ", "ㄕˊ"],
+                author: "韓翃", authorZhuyin: ["ㄏㄢˊ", "ㄏㄨㄥˊ"],
+                lines: [
+                    { text: "春城無處不飛花", zhuyin: "ㄔㄨㄣ ㄔㄥˊ ㄨˊ ㄔㄨˋ ㄅㄨˋ ㄈㄟ ㄏㄨㄚ" },
+                    { text: "寒食東風御柳斜", zhuyin: "ㄏㄢˊ ㄕˊ ㄉㄨㄥ ㄈㄥ ㄩˋ ㄌㄧㄡˇ ㄒㄧㄝˊ" },
+                    { text: "日暮漢宮傳蠟燭", zhuyin: "ㄖˋ ㄇㄨˋ ㄏㄢˋ ㄍㄨㄥ ㄔㄨㄢˊ ㄌㄚˋ ㄓㄨˊ" },
+                    { text: "輕煙散入五侯家", zhuyin: "ㄑㄧㄥ ㄧㄢ ㄙㄢˋ ㄖㄨˋ ㄨˇ ㄏㄡˊ ㄐㄧㄚ" }
+                ]
+            },
+            {
+                title: "月夜", titleZhuyin: ["ㄩㄝˋ", "ㄧㄝˋ"],
+                author: "劉方平", authorZhuyin: ["ㄌㄧㄡˊ", "ㄈㄤ", "ㄆㄧㄥˊ"],
+                lines: [
+                    { text: "更深月色半人家", zhuyin: "ㄍㄥ ㄕㄣ ㄩㄝˋ ㄙㄜˋ ㄅㄢˋ ㄖㄣˊ ㄐㄧㄚ" },
+                    { text: "北斗闌干南斗斜", zhuyin: "ㄅㄟˇ ㄉㄡˇ ㄌㄢˊ ㄍㄢ ㄋㄢˊ ㄉㄡˇ ㄒㄧㄝˊ" },
+                    { text: "今夜偏知春氣暖", zhuyin: "ㄐㄧㄣ ㄧㄝˋ ㄆㄧㄢ ㄓ ㄔㄨㄣ ㄑㄧˋ ㄋㄨㄢˇ" },
+                    { text: "蟲聲新透綠窗紗", zhuyin: "ㄔㄨㄥˊ ㄕㄥ ㄒㄧㄣ ㄊㄡˋ ㄌㄩˋ ㄔㄨㄤ ㄕㄚ" }
+                ]
+            },
+            {
+                title: "春怨 (劉)", titleZhuyin: ["ㄔㄨㄣ", "ㄩㄢˋ"],
+                author: "劉方平", authorZhuyin: ["ㄌㄧㄡˊ", "ㄈㄤ", "ㄆㄧㄥˊ"],
+                lines: [
+                    { text: "紗窗日落漸黃昏", zhuyin: "ㄕㄚ ㄔㄨㄤ ㄖˋ ㄌㄨㄛˋ ㄐㄧㄢˋ ㄏㄨㄤˊ ㄏㄨㄣ" },
+                    { text: "金屋無人見淚痕", zhuyin: "ㄐㄧㄣ ㄨ ㄨˊ ㄖㄣˊ ㄐㄧㄢˋ ㄌㄟˋ ㄏ痕" },
+                    { text: "寂寞空庭春欲晚", zhuyin: "ㄐㄧˊ ㄇㄛˋ ㄎㄨㄥ ㄊㄧㄥˊ ㄔㄨㄣ ㄩˋ ㄨㄢˇ" },
+                    { text: "梨花滿地不開門", zhuyin: "ㄌㄧˊ ㄏㄨㄚ ㄇㄢˇ ㄉㄧˋ ㄅㄨˋ ㄎㄞ ㄇㄣˊ" }
+                ]
+            },
+            {
+                title: "征人怨", titleZhuyin: ["ㄓㄥ", "ㄖㄣˊ", "ㄩㄢˋ"],
+                author: "柳中庸", authorZhuyin: ["ㄌㄧㄡˇ", "ㄓㄨㄥ", "ㄩㄥ"],
+                lines: [
+                    { text: "歲歲金河復玉關", zhuyin: "ㄙㄨㄟˋ ㄙㄨㄟˋ ㄐㄧㄣ ㄏㄜˊ ㄈㄨˋ ㄩˋ ㄍㄨㄢ" },
+                    { text: "朝朝馬策與刀環", zhuyin: "ㄓㄠ ㄓㄠ ㄇㄚˇ ㄘㄜˋ ㄩˇ ㄉㄠ ㄏㄨㄢˊ" },
+                    { text: "三春白雪歸青塚", zhuyin: "ㄙㄢ ㄔㄨㄣ ㄅㄞˊ ㄒㄩㄝˇ ㄍㄨㄟ ㄑㄧㄥ ㄓㄨㄥˇ" },
+                    { text: "萬里黃河繞黑山", zhuyin: "ㄨㄢˋ ㄌㄧˇ ㄏㄨㄤˊ ㄏㄜˊ ㄖㄠˋ ㄏㄟ ㄕㄢ" }
+                ]
+            },
+            {
+                title: "蘇溪亭", titleZhuyin: ["ㄙㄨ", "ㄒㄧ", "ㄊㄧㄥˊ"],
+                author: "戴叔倫", authorZhuyin: ["ㄉㄞˋ", "ㄕㄨˊ", "ㄌㄨㄣˊ"],
+                lines: [
+                    { text: "蘇溪亭上草漫漫", zhuyin: "ㄙㄨ ㄒㄧ ㄊㄧㄥˊ ㄕㄤˋ ㄘㄠˇ ㄇㄢˋ ㄇㄢˋ" },
+                    { text: "誰倚東風十二闌", zhuyin: "ㄕㄟˊ ㄧˇ ㄉㄨㄥ ㄈㄥ ㄕˊ ㄦˋ ㄌㄢˊ" },
+                    { text: "燕子不歸春事晚", zhuyin: "ㄧㄢˋ ㄗˇ ㄅㄨˋ ㄍㄨㄟ ㄔㄨㄣ ㄕˋ ㄨㄢˇ" },
+                    { text: "一汀煙雨杏花寒", zhuyin: "ㄧˋ ㄊㄧㄥ ㄧㄢ ㄩˇ ㄒㄧㄥˋ ㄏㄨㄚ ㄏㄢˊ" }
+                ]
+            },
+            {
+                title: "渡漢江", titleZhuyin: ["ㄉㄨˋ", "ㄏㄢˋ", "ㄐㄧㄤ"],
+                author: "宋之問", authorZhuyin: ["ㄙㄨㄥˋ", "ㄓ", "ㄨㄣˋ"],
+                lines: [
+                    { text: "嶺外音書斷", zhuyin: "ㄌㄧㄥˇ ㄨㄞˋ ㄧㄣ ㄕㄨ ㄉㄨㄢˋ" },
+                    { text: "經冬復歷春", zhuyin: "ㄐㄧㄥ ㄉㄨㄥ ㄈㄨˋ ㄌㄧˋ ㄔㄨㄣ" },
+                    { text: "近鄉情更怯", zhuyin: "ㄐㄧㄣˋ ㄒㄧㄤ ㄑㄧㄥˊ ㄍㄥˋ ㄑㄧㄝˋ" },
+                    { text: "不敢問來人", zhuyin: "ㄅㄨˋ ㄍㄢˇ ㄨㄣˋ ㄌㄞˊ ㄖㄣˊ" }
+                ]
+            },
+            {
+                title: "答人", titleZhuyin: ["ㄉㄚˊ", "ㄖㄣˊ"],
+                author: "太上隱者", authorZhuyin: ["ㄊㄞˋ", "ㄕㄤˋ", "ㄧㄣˇ", "ㄓㄜˇ"],
+                lines: [
+                    { text: "偶來松樹下", zhuyin: "ㄡˇ ㄌㄞˊ ㄙㄨㄥ ㄕㄨˋ ㄒㄧㄚˋ" },
+                    { text: "高枕石頭眠", zhuyin: "ㄍㄠ ㄓㄣˇ ㄕˊ ㄊㄡˊ ㄇㄧㄢˊ" },
+                    { text: "山中無曆日", zhuyin: "ㄕㄢ ㄓㄨㄥ ㄨˊ ㄌㄧˋ ㄖˋ" },
+                    { text: "寒盡不知年", zhuyin: "ㄏㄨˊ ㄐㄧㄣˋ ㄅㄨˋ ㄓ ㄋㄧㄢˊ" }
+                ]
+            },
+            {
+                title: "哥舒歌", titleZhuyin: ["ㄍㄜ", "ㄕㄨ", "ㄍㄜ"],
+                author: "西鄙人", authorZhuyin: ["ㄒㄧ", "ㄅㄧˇ", "ㄖㄣˊ"],
+                lines: [
+                    { text: "北斗七星高", zhuyin: "ㄅㄟˇ ㄉㄡˇ ㄑㄧ ㄒㄧㄥ ㄍㄠ" },
+                    { text: "哥舒夜帶刀", zhuyin: "ㄍㄜ ㄕㄨ ㄧㄝˋ ㄉㄞˋ ㄉㄠ" },
+                    { text: "至今窺牧馬", zhuyin: "ㄓˋ ㄐㄧㄣ ㄎㄨㄟ ㄇㄨˋ ㄇㄚˇ" },
+                    { text: "不敢過臨洮", zhuyin: "ㄅㄨˋ ㄍㄢˇ ㄍㄨㄛˋ ㄌㄧㄣˊ ㄊㄠˊ" }
+                ]
+            },
+            {
+                title: "塞下曲", titleZhuyin: ["ㄙㄞˋ", "ㄒㄧㄚˋ", "ㄑㄩ"],
+                author: "盧綸", authorZhuyin: ["ㄌㄨˊ", "ㄌㄨㄣˊ"],
+                lines: [
+                    { text: "月黑雁飛高", zhuyin: "ㄩㄝˋ ㄏㄟ ㄧㄢˋ ㄈㄟ ㄍㄠ" },
+                    { text: "單于夜遁逃", zhuyin: "ㄔㄢˊ ㄩˊ ㄧㄝˋ ㄉㄨㄣˋ ㄊㄠˊ" },
+                    { text: "欲將輕騎逐", zhuyin: "ㄩˋ ㄐㄧㄤ ㄑㄧㄥ ㄐㄧˋ ㄓㄨˊ" },
+                    { text: "大雪滿弓刀", zhuyin: "ㄉㄚˋ ㄒㄩㄝˇ ㄇㄢˇ ㄍㄨㄥ ㄉㄠ" }
+                ]
+            },
+            {
+                title: "秋夕", titleZhuyin: ["ㄑㄧㄡ", "ㄒㄧˋ"],
+                author: "杜牧", authorZhuyin: ["ㄉㄨˋ", "ㄇㄨˋ"],
+                lines: [
+                    { text: "銀燭秋光冷畫屏", zhuyin: "ㄧㄣˊ ㄓㄨˊ ㄑㄧㄡ ㄍㄨㄤ ㄌㄥˇ ㄏㄨㄚˋ ㄆㄧㄥˊ" },
+                    { text: "輕羅小扇撲流螢", zhuyin: "ㄑㄧㄥ ㄌㄨㄛˊ ㄒㄧㄠˇ ㄕㄢˋ ㄆㄨ ㄌㄧㄡˊ ㄧㄥˊ" },
+                    { text: "天階夜色涼如水", zhuyin: "ㄊㄧㄢ ㄐㄧㄝ ㄧㄝˋ ㄙㄜˋ ㄌㄧㄤˊ ㄖㄨˊ ㄕㄨㄟˇ" },
+                    { text: "臥看牽牛織女星", zhuyin: "ㄨㄛˋ ㄎㄢˋ ㄑㄧㄢ ㄋㄧㄡˊ ㄓ ㄋㄩˇ ㄒㄧㄥ" }
+                ]
+            },
+            {
+                title: "贈別", titleZhuyin: ["ㄗㄨㄥˋ", "ㄅㄧㄝˊ"],
+                author: "杜牧", authorZhuyin: ["ㄉㄨˋ", "ㄇㄨˋ"],
+                lines: [
+                    { text: "娉娉嫋嫋十三餘", zhuyin: "ㄆㄧㄥ ㄆㄧㄥ ㄋㄧㄠˇ ㄋㄧㄠˇ ㄕˊ ㄙㄢ ㄩˊ" },
+                    { text: "豆蔻梢頭二月初", zhuyin: "ㄉㄡˋ ㄎㄡˋ ㄕㄠ ㄊㄡˊ ㄦˋ ㄩㄝˋ ㄔㄨ" },
+                    { text: "春風十里揚州路", zhuyin: "ㄔㄨㄣ ㄈㄥ ㄕˊ ㄌㄧˇ ㄧㄤˊ ㄓㄡ ㄌㄨˋ" },
+                    { text: "卷上珠簾總不如", zhuyin: "ㄐㄨㄢˇ ㄕㄤˋ ㄓㄨ ㄌㄧㄢˊ ㄗㄨㄥˇ ㄅㄨˋ ㄖㄨˊ" }
+                ]
+            },
+            {
+                title: "金谷園", titleZhuyin: ["ㄐㄧㄣ", "ㄍㄨˇ", "ㄩㄢˊ"],
+                author: "杜牧", authorZhuyin: ["ㄉㄨˋ", "ㄇㄨˋ"],
+                lines: [
+                    { text: "繁華事散逐香塵", zhuyin: "ㄈㄢˊ ㄏㄨㄚˊ ㄕˋ ㄙㄢˋ ㄓㄨˊ ㄒㄧㄤ ㄔㄣˊ" },
+                    { text: "流水無情草自春", zhuyin: "ㄌㄧㄡˊ ㄕㄨㄟˇ ㄨˊ ㄑㄧㄥˊ ㄘㄠˇ ㄗˋ ㄔㄨㄣ" },
+                    { text: "日暮東風怨啼鳥", zhuyin: "ㄖˋ ㄇㄨˋ ㄉㄨㄥ ㄈㄥ ㄩㄢˋ ㄊㄧˊ ㄋㄧㄠˇ" },
+                    { text: "落花猶似墜樓人", zhuyin: "ㄌㄨㄛˋ ㄏㄨㄚ ㄧㄡˊ ㄕˋ ㄓㄨㄟˋ ㄌㄡˊ ㄖㄣˊ" }
+                ]
+            },
+            {
+                title: "清明", titleZhuyin: ["ㄑㄧㄥ", "ㄇㄧㄥˊ"],
+                author: "杜牧", authorZhuyin: ["ㄉㄨˋ", "ㄇㄨˋ"],
+                lines: [
+                    { text: "清明時節雨紛紛", zhuyin: "ㄑㄧㄥ ㄇㄧㄥˊ ㄕˊ ㄐㄧㄝˊ ㄩˇ ㄈㄣ ㄈㄣ" },
+                    { text: "路上行人欲斷魂",_zhuyin: "ㄌㄨˋ ㄕㄤˋ ㄒㄧㄥˊ ㄖㄣˊ ㄩˋ ㄉㄨㄢˋ ㄏㄨㄣ" },
+                    { text: "借問酒家何處有", zhuyin: "ㄐㄧㄝˋ ㄨㄣˋ ㄐㄧㄡˇ ㄐㄧㄚ ㄏㄜˊ ㄔㄨˋ ㄧㄡˇ" },
+                    { text: "牧童遙指杏花村", zhuyin: "ㄇㄨˋ ㄊㄨㄥˊ ㄧㄠˊ ㄓˇ ㄒㄧㄥˋ ㄏㄨㄚ ㄘㄣˊ" }
+                ]
+            },
+            {
+                title: "山行", titleZhuyin: ["ㄕㄢ", "ㄒㄧㄥˊ"],
+                author: "杜牧", authorZhuyin: ["ㄉㄨˋ", "ㄇㄨˋ"],
+                lines: [
+                    { text: "遠上寒山石徑斜", zhuyin: "ㄩㄢˇ ㄕㄤˋ ㄏㄢˊ ㄕㄢ ㄕˊ ㄐㄧㄥˋ ㄒㄧㄝˊ" },
+                    { text: "白雲生處有人家", zhuyin: "ㄅㄞˊ ㄩㄣˊ ㄕㄥ ㄔㄨˋ ㄧㄡˇ ㄖㄣˊ ㄐㄧㄚ" },
+                    { text: "停車坐愛楓林晚", zhuyin: "ㄊㄧㄥˊ ㄔㄜ ㄗㄨㄛˋ ㄞˋ ㄈㄥ ㄌㄧㄣˊ ㄨㄢˇ" },
+                    { text: "霜葉紅於二月花", zhuyin: "ㄕㄨㄤ ㄧㄝˋ ㄏㄨㄥˊ ㄩˊ ㄦˋ ㄩㄝˋ ㄏㄨㄚ" }
+                ]
+            },
+            {
+                title: "泊秦淮", titleZhuyin: ["ㄅㄛˊ", "ㄑㄧㄣˊ", "ㄏㄨㄞˊ"],
+                author: "杜牧", authorZhuyin: ["ㄉㄨˋ", "ㄇㄨˋ"],
+                lines: [
+                    { text: "煙籠寒水月籠沙", zhuyin: "ㄧㄢ ㄌㄨㄥˊ ㄏㄢˊ ㄕㄨㄟˇ ㄩㄝˋ ㄌㄨㄥˊ ㄕㄚ" },
+                    { text: "夜泊秦淮近酒家", zhuyin: "ㄧㄝˋ ㄅㄛˊ ㄑㄧㄣˊ ㄏㄨㄞˊ ㄐㄧㄣˋ ㄐㄧㄡˇ ㄐㄧㄚ" },
+                    { text: "商女不知亡國恨", zhuyin: "ㄕㄤ ㄋㄩˇ ㄅㄨˋ ㄓ ㄨㄤˊ ㄍㄨㄛˊ ㄏㄣˋ" },
+                    { text: "隔江猶唱後庭花", zhuyin: "ㄍㄜˊ ㄐㄧㄤ ㄧㄡˊ ㄔㄤˋ ㄏㄡˋ ㄊㄧㄥˊ ㄏㄨㄚ" }
+                ]
+            },
+            {
+                title: "夜雨寄北", titleZhuyin: ["ㄧㄝˋ", "ㄩˇ", "ㄐㄧˋ", "ㄅㄟˇ"],
+                author: "李商隱", authorZhuyin: ["ㄌㄧˇ", "ㄕㄤ", "ㄧㄣˇ"],
+                lines: [
+                    { text: "君問歸期未有期", zhuyin: "ㄐㄩㄣ ㄨㄣˋ ㄍㄨㄟ ㄑㄧˊ ㄨㄟˋ ㄧㄡˇ ㄑㄧˊ" },
+                    { text: "巴山夜雨漲秋池", zhuyin: "ㄅㄚ ㄕㄢ ㄧㄝˋ ㄩˇ ㄓㄤˇ ㄑㄧㄡ ㄔˊ" },
+                    { text: "何當共剪西窗燭", zhuyin: "ㄏㄜˊ ㄉㄤ ㄍㄨㄥˋ ㄐㄧㄢˇ ㄒㄧ ㄔㄨㄤ ㄓㄨˊ" },
+                    { text: "卻話巴山夜雨時", zhuyin: "ㄑㄩㄝˋ ㄏㄨㄚˋ ㄅㄚ ㄕㄢ ㄧㄝˋ ㄩˇ ㄕˊ" }
+                ]
+            },
+            {
+                title: "寄令狐郎中", titleZhuyin: ["ㄐㄧˋ", "ㄌㄧㄥˊ", "ㄏㄨˊ", "ㄌㄨㄣˊ", "ㄓㄨㄥ"],
+                author: "李商隱", authorZhuyin: ["ㄌㄧˇ", "ㄕㄤ", "ㄧㄣˇ"],
+                lines: [
+                    { text: "嵩雲秦樹久離居", zhuyin: "ㄙㄨㄥ ㄩㄣˊ ㄑㄧㄣˊ ㄕㄨˋ ㄐㄧㄡˇ ㄌㄧˊ ㄐㄩ" },
+                    { text: "雙領寬博望未舒", zhuyin: "ㄕㄨㄤ ㄌㄧㄥˇ ㄎㄨㄢ ㄅㄛˊ ㄨㄤˋ ㄨㄟˋ ㄕㄨ" },
+                    { text: "欲問東來雙鯉魚", zhuyin: "ㄩˋ ㄨㄣˋ ㄉㄨㄥ ㄌㄞˊ ㄕㄨㄤ ㄌㄧˇ ㄩˊ" },
+                    { text: "一封家書到何時", zhuyin: "ㄧˋ ㄈㄥ ㄐㄧㄚ ㄕㄨ ㄉㄠˋ ㄏㄜˊ ㄕˊ" }
+                ]
+            },
+            {
+                title: "為有", titleZhuyin: ["ㄨㄟˊ", "ㄧㄡˇ"],
+                author: "李商隱", authorZhuyin: ["ㄌㄧˇ", "ㄕㄤ", "ㄧㄣˇ"],
+                lines: [
+                    { text: "為有雲屏無限嬌", zhuyin: "ㄨㄟˊ ㄧㄡˇ ㄩㄣˊ ㄆㄧㄥˊ ㄨˊ ㄒㄧㄢˋ ㄐㄧㄠ" },
+                    { text: "鳳城寒盡怕春宵", zhuyin: "ㄈㄥˋ ㄔㄥˊ ㄏㄢˊ ㄐㄧㄣˋ ㄆㄚˋ ㄔㄨㄣ ㄒㄧㄠ" },
+                    { text: "無端嫁得金龜婿", zhuyin: "ㄨˊ ㄉㄨㄢ ㄐㄧㄚˋ ㄉㄜˊ ㄐㄧㄣ ㄍㄨㄟ ㄒㄩˋ" },
+                    { text: "辜負香衾事早朝", zhuyin: "ㄍㄨ ㄈㄨˋ ㄒㄧㄤ ㄑㄧㄣ ㄕˋ ㄗㄠˇ ㄔㄠˊ" }
+                ]
+            },
+            {
+                title: "金縷衣", titleZhuyin: ["ㄐㄧㄣ", "ㄌㄩˇ", "ㄧ"],
+                author: "杜秋娘", authorZhuyin: ["ㄉㄨˋ", "ㄑㄧㄡ", "ㄋㄧㄤˊ"],
+                lines: [
+                    { text: "勸君莫惜金縷衣", zhuyin: "ㄑㄩㄢˋ ㄐㄩㄣ ㄇㄛˋ ㄒㄧˊ ㄐㄧㄣ ㄌㄩˇ ㄧ" },
+                    { text: "勸君惜取少年時", zhuyin: "ㄑㄩㄢˋ ㄐㄩㄣ ㄒㄧˊ ㄑㄩˇ ㄕㄠˇ ㄋㄧㄢˊ ㄕˊ" },
+                    { text: "花開堪折直須折", zhuyin: "ㄏㄨㄚ ㄎㄞ ㄎㄢ ㄓㄜˊ ㄓˊ ㄒㄩ ㄓㄜˊ" },
+                    { text: "莫待無花空折枝", zhuyin: "ㄇㄛˋ ㄉㄞˋ ㄨˊ ㄏㄨㄚ ㄎㄨㄥ ㄓㄜˊ ㄓ" }
+                ]
+            },
+            {
+                title: "隴西行", titleZhuyin: ["ㄌㄨㄥˇ", "ㄒㄧ", "ㄒㄧㄥˊ"],
+                author: "陳陶", authorZhuyin: ["ㄔㄣˊ", "ㄊㄠˊ"],
+                lines: [
+                    { text: "誓掃匈奴不顧身", zhuyin: "ㄕˋ ㄙㄠˇ ㄒㄩㄥ ㄋㄨˊ ㄅㄨˊ ㄍㄨˋ ㄕㄣ" },
+                    { text: "五千貂錦喪胡塵", zhuyin: "ㄨˇ ㄑㄧㄢ ㄉㄧㄠ ㄐㄧㄣˇ ㄙㄤˋ ㄏㄨˊ ㄔㄣˊ" },
+                    { text: "可憐無定河邊骨", zhuyin: "ㄎㄜˇ ㄌㄧㄢˊ ㄨˊ ㄉㄧㄥˋ ㄏㄜˊ ㄅㄧㄢ ㄍㄨˇ" },
+                    { text: "猶是春閨夢裡人", zhuyin: "ㄧㄡˊ ㄕˋ ㄔㄨㄣ ㄍㄨㄟ ㄇㄥˋ ㄌㄧˇ ㄖㄣˊ" }
+                ]
+            }
+        ];
+
+        // 標準台灣鍵盤 Bopomofo -> QWERTY 鍵盤按鍵對照
+        const ZHUYIN_TO_KEY = {
+            'ㄅ': '1', 'ㄉ': '2', 'ˇ': '3', 'ˋ': '4', 'ㄓ': '5', 'ˊ': '6', '˙': '7', 'ㄚ': '8', 'ㄞ': '9', 'ㄢ': '0', 'ㄦ': '-',
+            'ㄆ': 'q', 'ㄊ': 'w', 'ㄍ': 'e', 'ㄐ': 'r', 'ㄔ': 't', 'ㄗ': 'y', 'ㄧ': 'u', 'ㄛ': 'i', 'ㄟ': 'o', 'ㄣ': 'p',
+            'ㄇ': 'a', 'ㄋ': 's', 'ㄎ': 'd', 'ㄑ': 'f', 'ㄕ': 'g', 'ㄘ': 'h', 'ㄨ': 'j', 'ㄜ': 'k', 'ㄠ': 'l', 'ㄤ': ';',
+            'ㄈ': 'z', 'ㄌ': 'x', 'ㄏ': 'c', 'ㄒ': 'v', 'ㄖ': 'b', 'ㄙ': 'n', 'ㄩ': 'm', 'ㄝ': ',', 'ㄡ': '.', 'ㄥ': '/', ' ': ' '
+        };
+
+        // 音訊上下文初始化
+        let audioCtx = null;
+        function playBeep(freq, duration, type = "sine") {
+            const soundEnabled = document.getElementById('sound-toggle').checked;
+            if (!soundEnabled) return;
+            
+            try {
+                if (!audioCtx) {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+                
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                
+                osc.start();
+                osc.stop(audioCtx.currentTime + duration);
+            } catch (e) {
+                console.log("Audio play failed: ", e);
+            }
+        }
+
+        const Sound = {
+            correct: () => playBeep(880, 0.1, "sine"),     
+            wrong: () => playBeep(220, 0.25, "triangle"),   
+            success: () => {                               
+                playBeep(523.25, 0.1); 
+                setTimeout(() => playBeep(659.25, 0.1), 100); 
+                setTimeout(() => playBeep(783.99, 0.1), 200); 
+                setTimeout(() => playBeep(1046.50, 0.25), 300); 
+            },
+            levelUp: () => {
+                playBeep(587.33, 0.15); 
+                setTimeout(() => playBeep(739.99, 0.15), 150); 
+                setTimeout(() => playBeep(880, 0.15), 300); 
+                setTimeout(() => playBeep(1174.66, 0.4), 450); 
+            }
+        };
+
+        // 應用狀態
+        let state = {
+            currentPoemIdx: 0,
+            currentLineIdx: 0,
+            wrongChars: [], // 記錄當前行打錯的字元索引
+            totalScore: 0,
+            completedPoems: {}, 
+            poemStartTime: null, // 新增：整首詩開始計時的時間
+            isWaitingToStart: false, // 新增：等待按下 Enter 開始的狀態
+            lineStartTime: null,
+            totalTypedCount: 0,
+            errorCount: 0,
+            poemLineScores: []
+        };
+
+        window.onload = function() {
+            loadProgress();
+            buildPoemList();
+            loadPoem(state.currentPoemIdx);
+            
+            const inputField = document.getElementById('typing-input');
+            
+            // 監聽 Enter 鍵進行整句比對
+            inputField.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    // 確保不是輸入法正在組字時按下的 Enter
+                    if (e.isComposing || e.keyCode === 229) return;
+                    e.preventDefault();
+                    
+                    // 檢查是否處於等待開始狀態
+                    if (state.isWaitingToStart) {
+                        startPoem();
+                    } else {
+                        validateLine(e.target.value);
+                    }
+                }
+            });
+            
+            document.querySelector('#target-sentence').addEventListener('click', () => {
+                inputField.focus();
+            });
+
+            window.addEventListener('keydown', handleGlobalKeyDown);
+            window.addEventListener('keyup', handleGlobalKeyUp);
+        };
+
+        function loadProgress() {
+            const saved = localStorage.getItem('zhuyin_typer_progress');
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    state.completedPoems = parsed.completedPoems || {};
+                    state.totalScore = parsed.totalScore || 0;
+                    updateHeaderStats();
+                } catch (e) {
+                    console.error("Failed to load progress", e);
+                }
+            }
+        }
+
+        function saveProgress() {
+            localStorage.setItem('zhuyin_typer_progress', JSON.stringify({
+                completedPoems: state.completedPoems,
+                totalScore: state.totalScore
+            }));
+            updateHeaderStats();
+        }
+
+        function updateHeaderStats() {
+            document.getElementById('total-score').innerText = state.totalScore;
+            const completedCount = Object.keys(state.completedPoems).length;
+            document.getElementById('completed-count').innerText = `${completedCount} / 50`;
+            document.getElementById('sidebar-progress').innerText = `${Math.round(completedCount / 50 * 100)}%`;
+
+            let title = "注音小新手";
+            if (state.totalScore >= 5000) title = "注音小狀元 👑";
+            else if (state.totalScore >= 3000) title = "注音大宗師 🧙‍♂️";
+            else if (state.totalScore >= 1500) title = "注音高手 🏹";
+            else if (state.totalScore >= 500) title = "注音學徒 🎒";
+            
+            document.getElementById('user-title').innerText = title;
+        }
+
+        function resetAllProgress() {
+            if (confirm("你確定要清除所有的練習記錄嗎？這將會把星星和積分歸零喔！")) {
+                state.completedPoems = {};
+                state.totalScore = 0;
+                saveProgress();
+                buildPoemList();
+                loadPoem(0);
+                toggleSettingsModal();
+                alert("進度已重置！");
+            }
+        }
+
+        function buildPoemList() {
+            const listContainer = document.getElementById('poem-list');
+            listContainer.innerHTML = '';
+            
+            POEMS_DATABASE.forEach((poem, idx) => {
+                const isCompleted = state.completedPoems[idx] !== undefined;
+                const stars = isCompleted ? '⭐'.repeat(state.completedPoems[idx]) : '';
+                
+                const btn = document.createElement('button');
+                btn.id = `poem-item-${idx}`;
+                btn.onclick = () => loadPoem(idx);
+                btn.className = `w-full text-left p-3 rounded-2xl border-2 transition duration-150 flex items-center justify-between ${
+                    idx === state.currentPoemIdx 
+                    ? 'border-blue-500 bg-blue-50 text-blue-900 font-extrabold' 
+                    : 'border-gray-100 hover:border-gray-200 bg-white text-gray-700 font-medium'
+                }`;
+                
+                btn.innerHTML = `
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs bg-gray-200 text-gray-600 px-1.5 py-0.5 rounded-md font-black">${idx + 1}</span>
+                        <div>
+                            <div class="text-sm tracking-wide font-black">${poem.title}</div>
+                            <div class="text-xs text-gray-400 font-bold">${poem.author}</div>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-xs text-yellow-500 font-black">${stars}</div>
+                        ${isCompleted ? '<span class="text-xs text-green-500 font-black">✔ 完成</span>' : '<span class="text-xs text-gray-300 font-bold">未完成</span>'}
+                    </div>
+                `;
+                listContainer.appendChild(btn);
+            });
+        }
+
+        function filterPoems() {
+            const query = document.getElementById('poem-search').value.toLowerCase();
+            POEMS_DATABASE.forEach((poem, idx) => {
+                const elem = document.getElementById(`poem-item-${idx}`);
+                if (poem.title.toLowerCase().includes(query) || poem.author.toLowerCase().includes(query)) {
+                    elem.style.display = 'flex';
+                } else {
+                    elem.style.display = 'none';
+                }
+            });
+        }
+
+        function loadPoem(poemIdx) {
+            const prevSelected = document.getElementById(`poem-item-${state.currentPoemIdx}`);
+            if (prevSelected) {
+                prevSelected.className = prevSelected.className.replace('border-blue-500 bg-blue-50 text-blue-900 font-extrabold', 'border-gray-100 hover:border-gray-200 bg-white text-gray-700 font-medium');
+            }
+            
+            state.currentPoemIdx = poemIdx;
+            
+            const newSelected = document.getElementById(`poem-item-${poemIdx}`);
+            if (newSelected) {
+                newSelected.className = newSelected.className.replace('border-gray-100 hover:border-gray-200 bg-white text-gray-700 font-medium', 'border-blue-500 bg-blue-50 text-blue-900 font-extrabold');
+                newSelected.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+
+            const poem = POEMS_DATABASE[poemIdx];
+            
+            const titleHTML = poem.title.split('').map((char, i) => {
+                return `<ruby>${char}<rt>${poem.titleZhuyin[i]}</rt></ruby>`;
+            }).join('');
+            document.getElementById('current-title').innerHTML = titleHTML;
+
+            const authorHTML = poem.author.split('').map((char, i) => {
+                return `<ruby>${char}<rt>${poem.authorZhuyin[i]}</rt></ruby>`;
+            }).join('');
+            document.getElementById('current-author').innerHTML = `〔${authorHTML}〕`;
+
+            state.currentLineIdx = 0;
+            state.wrongChars = [];
+            state.totalTypedCount = 0;
+            state.errorCount = 0;
+            state.poemLineScores = [];
+            state.poemStartTime = null; // 重置整首計時
+            state.isWaitingToStart = true; // 設為等待開始狀態
+            
+            // 新增：切換題目時，將底部狀態列顯示歸零
+            document.getElementById('stat-accuracy').innerText = '100%';
+            document.getElementById('stat-speed').innerText = '0';
+            document.getElementById('stat-score').innerText = '0';
+            
+            renderWaitingScreen();
+        }
+
+        // 新增：渲染等待開始畫面
+        function renderWaitingScreen() {
+            const container = document.getElementById('target-sentence');
+            container.innerHTML = `<div class="text-3xl md:text-4xl font-black text-blue-600 animate-pulse py-8">👉 按 Enter 鍵後開始計時 👈</div>`;
+            
+            const indicators = document.getElementById('line-indicators');
+            indicators.innerHTML = '';
+            const poem = POEMS_DATABASE[state.currentPoemIdx];
+            poem.lines.forEach(() => {
+                const dot = document.createElement('div');
+                dot.className = `w-3.5 h-3.5 rounded-full border-2 border-gray-300 bg-gray-100`;
+                indicators.appendChild(dot);
+            });
+
+            const inputField = document.getElementById('typing-input');
+            inputField.disabled = false;
+            inputField.value = "";
+            inputField.placeholder = "準備好請按 Enter 鍵開始...";
+            inputField.focus();
+
+            updateMascot("idle");
+        }
+
+        // 新增：正式開始練習與計時
+        function startPoem() {
+            state.isWaitingToStart = false;
+            state.poemStartTime = new Date(); // 此刻才開始算整首詩的時間
+            loadLine(0);
+        }
+
+        function resetCurrentPoem() {
+            loadPoem(state.currentPoemIdx);
+        }
+
+        function renderLineIndicators() {
+            const container = document.getElementById('line-indicators');
+            container.innerHTML = '';
+            const poem = POEMS_DATABASE[state.currentPoemIdx];
+            poem.lines.forEach((_, idx) => {
+                const dot = document.createElement('div');
+                dot.className = `w-3.5 h-3.5 rounded-full border-2 border-blue-400 transition-all duration-300 ${
+                    idx === state.currentLineIdx ? 'bg-blue-500 scale-125' : idx < state.currentLineIdx ? 'bg-green-400 border-green-500' : 'bg-gray-100'
+                }`;
+                container.appendChild(dot);
+            });
+        }
+
+        function loadLine(lineIdx) {
+            state.currentLineIdx = lineIdx;
+            state.wrongChars = [];
+            state.lineStartTime = new Date();
+            
+            renderLineIndicators();
+            renderSentence();
+            updateMascot("idle");
+            
+            const inputField = document.getElementById('typing-input');
+            inputField.disabled = false; // 確保新的一行開始時解鎖輸入框
+            inputField.value = "";
+            inputField.placeholder = "輸入整句後按 Enter 送出...";
+            inputField.focus();
+        }
+
+        function renderSentence() {
+            const container = document.getElementById('target-sentence');
+            container.innerHTML = '';
+            
+            const poem = POEMS_DATABASE[state.currentPoemIdx];
+            const line = poem.lines[state.currentLineIdx];
+            
+            const chars = line.text.split('');
+            const zhuyins = line.zhuyin.split(' ');
+
+            chars.forEach((char, i) => {
+                const wrapper = document.createElement('div');
+                wrapper.className = "flex flex-col items-center select-none transition-all duration-300";
+                
+                let textColor = "text-gray-700";
+                let rtColor = "color: #ea580c;"; 
+                
+                // 如果這個字在錯誤名單中，標示為紅色
+                if (state.wrongChars && state.wrongChars.includes(i)) {
+                    textColor = "text-red-600 font-black scale-110";
+                    rtColor = "color: #dc2626;"; 
+                    wrapper.classList.add("border-b-4", "border-red-500", "pb-1");
+                }
+                
+                wrapper.innerHTML = `
+                    <ruby class="${textColor}" style="transition: all 0.2s;">
+                        ${char}
+                        <rt style="${rtColor}">${zhuyins[i]}</rt>
+                    </ruby>
+                `;
+                container.appendChild(wrapper);
+            });
+        }
+
+        // 檢查是否是標準中文字 (排除注音符號在組字時的干擾)
+        function isChineseChar(char) {
+            return /[\u4e00-\u9fa5]/.test(char);
+        }
+
+        // 整句比對邏輯
+        function validateLine(inputVal) {
+            const poem = POEMS_DATABASE[state.currentPoemIdx];
+            const targetText = poem.lines[state.currentLineIdx].text;
+            const cleanInput = inputVal.replace(/\s+/g, ''); // 移除空白
+            
+            if (cleanInput === targetText) {
+                // 完全正確
+                Sound.correct();
+                updateMascot("correct");
+                state.wrongChars = []; 
+                state.totalTypedCount += targetText.length;
+                
+                document.getElementById('typing-input').value = ""; 
+                
+                // 無延遲，直接完成此行並換下一句
+                finishLine();
+
+            } else {
+                // 找出錯字並標示
+                state.wrongChars = [];
+                let hasError = false;
+                
+                for (let i = 0; i < targetText.length; i++) {
+                    // 如果輸入的字元與正確字元不符，或是輸入較短導致 undefined，都算錯
+                    if (cleanInput[i] !== targetText[i]) {
+                        state.wrongChars.push(i);
+                        hasError = true;
+                    }
+                }
+                
+                // 如果前面都對，但學生不小心多打了字，我們標示最後一個字為錯誤提醒
+                if (!hasError && cleanInput.length !== targetText.length) {
+                    state.wrongChars.push(targetText.length - 1);
+                }
+                
+                state.errorCount++;
+                updateMascot("wrong");
+                Sound.wrong();
+                renderSentence(); // 重新渲染題目，此時錯字會變紅色，不加入額外等待或震動特效
+            }
+        }
+
+        function finishLine() {
+            // 計算「整首詩到目前為止」的速度
+            const timeElapsed = (new Date() - state.poemStartTime) / 1000; 
+            const poem = POEMS_DATABASE[state.currentPoemIdx];
+            
+            let totalCharsUpToNow = 0;
+            for (let i = 0; i <= state.currentLineIdx; i++) {
+                totalCharsUpToNow += poem.lines[i].text.length;
+            }
+            
+            const speed = Math.round((totalCharsUpToNow / timeElapsed) * 60);
+            
+            // 計算本行的得分與全首累積準確率所需數據
+            const lineLen = poem.lines[state.currentLineIdx].text.length;
+            const totalAttempts = lineLen + state.errorCount;
+            const accuracy = totalAttempts > 0 ? Math.round((lineLen / totalAttempts) * 100) : 100;
+            
+            // 此行得分使用固定秒數參數避免影響，或是直接用字數計算
+            const lineScore = Math.max(10, Math.round((lineLen * 20) * (accuracy / 100)));
+            state.poemLineScores.push(lineScore);
+            state.totalScore += lineScore;
+
+            document.getElementById('stat-accuracy').innerText = `${accuracy}%`;
+            document.getElementById('stat-speed').innerText = speed;
+            document.getElementById('stat-score').innerText = state.poemLineScores.reduce((a, b) => a + b, 0);
+
+            saveProgress();
+
+            if (state.currentLineIdx + 1 < poem.lines.length) {
+                Sound.success();
+                updateMascot("celebrate");
+                
+                // 無延遲，直接載入下一句
+                loadLine(state.currentLineIdx + 1);
+            } else {
+                finishPoem();
+            }
+        }
+
+        function finishPoem() {
+            Sound.levelUp();
+            updateMascot("celebrate");
+            
+            // --- 新增：畫面替換為完成提示，並鎖定輸入框 ---
+            const container = document.getElementById('target-sentence');
+            container.innerHTML = `<div class="text-4xl md:text-5xl font-black text-green-600 animate-bounce py-6">🎉 恭喜完成整首詩！ 🎉</div>`;
+            
+            const inputField = document.getElementById('typing-input');
+            inputField.value = "";
+            inputField.disabled = true; // 鎖定輸入框避免誤打
+            inputField.placeholder = "太棒了！準備觀看成績...";
+            // --------------------------------------------
+
+            const poem = POEMS_DATABASE[state.currentPoemIdx];
+            const totalChars = poem.lines.reduce((sum, line) => sum + line.text.length, 0);
+            const accuracy = Math.max(10, Math.round(((totalChars) / (totalChars + state.errorCount)) * 100));
+            
+            let stars = 1;
+            if (accuracy >= 95) stars = 3;
+            else if (accuracy >= 80) stars = 2;
+
+            const oldStars = state.completedPoems[state.currentPoemIdx] || 0;
+            if (stars > oldStars) {
+                state.completedPoems[state.currentPoemIdx] = stars;
+                saveProgress();
+            }
+
+            buildPoemList();
+
+            setTimeout(() => {
+                showCelebrationModal(stars, accuracy);
+            }, 800); // 縮短延遲時間，不拖長等待
+        }
+
+        function showCelebrationModal(stars, accuracy) {
+            const poem = POEMS_DATABASE[state.currentPoemIdx];
+            document.getElementById('modal-poem-title').innerText = `《${poem.title}》${poem.author}`;
+            document.getElementById('modal-stars').innerText = '⭐'.repeat(stars) + '☆'.repeat(3 - stars);
+            document.getElementById('modal-accuracy').innerText = `${accuracy}%`;
+            
+            const totalScoreThisPoem = state.poemLineScores.reduce((a,b)=>a+b, 0);
+            document.getElementById('modal-score').innerText = `+${totalScoreThisPoem}`;
+            document.getElementById('modal-wpm').innerText = `${document.getElementById('stat-speed').innerText} 字/分`;
+
+            document.getElementById('celebration-modal').classList.remove('hidden');
+        }
+
+        function closeCelebrationModal() {
+            document.getElementById('celebration-modal').classList.add('hidden');
+            resetCurrentPoem();
+        }
+
+        function loadNextPoem() {
+            document.getElementById('celebration-modal').classList.add('hidden');
+            const nextIdx = (state.currentPoemIdx + 1) % 50;
+            loadPoem(nextIdx);
+        }
+
+        function updateMascot(status) {
+            const mascot = document.getElementById('mascot');
+            let scale = "scale-100";
+            let color = "bg-blue-400 border-blue-600";
+            let face = `
+                <div class="absolute top-1 left-2 w-3 h-3 bg-white rounded-full flex items-center justify-center">
+                    <div class="w-1.5 h-1.5 bg-black rounded-full"></div>
+                </div>
+                <div class="absolute top-1 right-2 w-3 h-3 bg-white rounded-full flex items-center justify-center">
+                    <div class="w-1.5 h-1.5 bg-black rounded-full"></div>
+                </div>
+                <div class="absolute bottom-3 w-4 h-2 bg-red-400 rounded-b-full"></div>
+                <div class="absolute -top-3 left-6 text-xl">✨</div>
+            `;
+
+            if (status === "correct") {
+                scale = "scale-110 -translate-y-2";
+                color = "bg-green-400 border-green-600";
+                face = `
+                    <div class="absolute top-2 left-2 text-[10px] font-bold text-green-800">＞</div>
+                    <div class="absolute top-2 right-2 text-[10px] font-bold text-green-800">＜</div>
+                    <div class="absolute bottom-2.5 w-5 h-3 bg-red-500 rounded-full flex items-center justify-center">
+                        <div class="w-2 h-1 bg-pink-300 rounded-full"></div>
+                    </div>
+                    <div class="absolute -top-3 left-6 text-xl">💖</div>
+                `;
+            } else if (status === "wrong") {
+                scale = "scale-90 animate-shake";
+                color = "bg-red-400 border-red-600";
+                face = `
+                    <div class="absolute top-2 left-2 text-[10px] font-bold text-red-800">◉</div>
+                    <div class="absolute top-2 right-2 text-[10px] font-bold text-red-800">◉</div>
+                    <div class="absolute bottom-3 w-4 h-1.5 bg-red-900 rounded-t-full"></div>
+                    <div class="absolute -top-3 left-6 text-xl">💧</div>
+                `;
+            } else if (status === "celebrate") {
+                scale = "scale-125 -translate-y-4 rotate-12";
+                color = "bg-yellow-400 border-yellow-600 animate-bounce";
+                face = `
+                    <div class="absolute top-2 left-2 text-[10px] font-bold text-yellow-900">🗢</div>
+                    <div class="absolute top-2 right-2 text-[10px] font-bold text-yellow-900">🗢</div>
+                    <div class="absolute bottom-2 w-6 h-4 bg-red-500 rounded-b-full"></div>
+                    <div class="absolute -top-5 left-5 text-2xl">👑</div>
+                `;
+            }
+
+            mascot.innerHTML = `
+                <div class="w-16 h-16 ${color} rounded-full border-4 flex items-center justify-center shadow-lg relative transition-all duration-200 ${scale}">
+                    ${face}
+                </div>
+            `;
+        }
+
+        function toggleKeyboardVisibility() {
+            const isChecked = document.getElementById('toggle-keyboard').checked;
+            const kb = document.getElementById('virtual-keyboard');
+            if (isChecked) {
+                kb.classList.remove('hidden');
+            } else {
+                kb.classList.add('hidden');
+            }
+        }
+
+        function handleGlobalKeyDown(e) {
+            const key = e.key.toLowerCase();
+            const keyElem = document.querySelector(`#virtual-keyboard [data-key="${key}"]`);
+            if (keyElem) {
+                keyElem.classList.add('scale-95', 'opacity-80', 'border-blue-500');
+            }
+        }
+
+        function handleGlobalKeyUp(e) {
+            const key = e.key.toLowerCase();
+            const keyElem = document.querySelector(`#virtual-keyboard [data-key="${key}"]`);
+            if (keyElem) {
+                keyElem.classList.remove('scale-95', 'opacity-80', 'border-blue-500');
+            }
+        }
+
+        function speakCurrentPoem() {
+            const poem = POEMS_DATABASE[state.currentPoemIdx];
+            if (!poem) return;
+            
+            window.speechSynthesis.cancel();
+            
+            const fullText = `《${poem.title}》，作者：${poem.author}。` + poem.lines.map(l => l.text).join('，') + '。';
+            const utterance = new SpeechSynthesisUtterance(fullText);
+            utterance.lang = 'zh-TW';
+            
+            const rateInput = document.getElementById('speech-rate');
+            utterance.rate = rateInput ? (parseFloat(rateInput.value) || 0.8) : 0.8;
+            
+            window.speechSynthesis.speak(utterance);
+        }
+
+        function toggleSettingsModal() {
+            const modal = document.getElementById('settings-modal');
+            if (modal) {
+                modal.classList.toggle('hidden');
+            }
+        }
+
+        // 新增全螢幕切換功能
+        function toggleFullScreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch((err) => {
+                    console.log(`Error attempting to enable fullscreen: ${err.message}`);
+                });
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+        }
+    </script>
+</body>
+</html>
